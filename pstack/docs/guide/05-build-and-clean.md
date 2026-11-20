@@ -1,83 +1,83 @@
-# Build the change and clean the diff
+# 変更を作り、diff をきれいにする（Build the change and clean the diff）
 
-The build playbooks share one discipline. Say what you observed, and let the playbook demand the evidence. This page shows what to put in the prompt for each common build task, then the cleanup habit that keeps diffs reviewable.
+実装のプレイブックには、共通の規律が 1 つある。観察したことを伝え、証拠を求めるのはプレイブックに任せる。このページでは、よくある実装のタスクごとにプロンプトに何を書くかを示し、そのあとで、diff をレビューしやすく保つための片付けの習慣を説明する。
 
-## Prompt each build playbook with what you know
+## 実装のプレイブックには、知っていることをプロンプトで伝える（Prompt each build playbook with what you know）
 
-A bug prompt states the symptom and asks for a reproduction first:
+バグのプロンプトでは、症状を述べ、まず再現を求める。
 
 ```text
 /poteto-mode this command emits two records after a retry. repro first, then fix and verify.
 ```
 
-A feature prompt states the behavior and what must not change:
+機能のプロンプトでは、振る舞いと、変えてはならないものを述べる。
 
 ```text
 /poteto-mode add a --json flag. text output stays byte-identical. verify both forms.
 ```
 
-A refactoring prompt pins behavior before structure moves:
+リファクタリングのプロンプトでは、構造を動かす前に振る舞いを固定する。
 
 ```text
 /poteto-mode move parsing into one module, zero behavior change. record the current output first and prove it's unchanged after.
 ```
 
-A perf prompt states the measurement, not an impression:
+性能のプロンプトでは、印象ではなく測定値を述べる。
 
 ```text
 /poteto-mode startup takes 1.8s on this fixture. trace it, fix the measured cause, show me before and after.
 ```
 
-Each of these routes to its playbook ([Bug fix](../../skills/poteto-mode/playbooks/bug-fix.md), [Feature](../../skills/poteto-mode/playbooks/feature.md), [Refactoring](../../skills/poteto-mode/playbooks/refactoring.md), [Perf issue](../../skills/poteto-mode/playbooks/perf-issue.md)), and the playbook supplies the steps you didn't type: reproduce before fixing, name the data shape before implementing, pin behavior before restructuring, profile before optimizing.
+どれも対応するプレイブック、つまり [バグ修正（Bug fix）](../../skills/poteto-mode/playbooks/bug-fix.md)、[機能開発（Feature）](../../skills/poteto-mode/playbooks/feature.md)、[リファクタリング（Refactoring）](../../skills/poteto-mode/playbooks/refactoring.md)、[性能問題（Perf issue）](../../skills/poteto-mode/playbooks/perf-issue.md) に振り分けられ、入力しなかった手順はプレイブックが補う。修正の前に再現する、実装の前にデータの形を決める、構造を変える前に振る舞いを固定する、最適化の前にプロファイルを取る、といった手順である。
 
-For sustained improvement of one number, there's the [Hillclimb playbook](../../skills/poteto-mode/playbooks/hillclimb.md). Give it the metric, a target, and a floor on attempts, and it loops one hypothesis at a time with a frozen measurement harness. It keeps wins and reverts everything else.
+1 つの数値を継続的に改善したいときは、[山登り（Hillclimb）のプレイブック](../../skills/poteto-mode/playbooks/hillclimb.md) がある。指標、目標値、最低限の試行回数を渡すと、測定のハーネスを固定したまま、仮説を 1 つずつ試すループを回す。改善したものは残し、それ以外はすべて元に戻す。
 
-Both perf playbooks run [`/benchmark-checklist`](../../skills/benchmark-checklist/SKILL.md) on their numbers. Perf issue vets its baseline and every number after it, and Hillclimb vets its harness before freezing it. [Verify and ship](./06-verify-and-ship.md#vet-a-measured-number-with-benchmark-checklist) shows when to type it yourself.
+性能のプレイブックはどちらも、得た数値に [`/benchmark-checklist`](../../skills/benchmark-checklist/SKILL.md) をかける。性能問題（Perf issue）はベースラインとそれ以降のすべての数値を吟味し、山登り（Hillclimb）はハーネスを固定する前にそのハーネスを吟味する。自分で `/benchmark-checklist` を打つべき場面は、[検証してリリースする（Verify and ship）](./06-verify-and-ship.md#測った数値を-benchmark-checklist-で吟味するvet-a-measured-number-with-benchmark-checklist) で説明している。
 
-Sometimes you want the cause before any fix. For a live symptom, such as a leak, an idle CPU spin, or a visual glitch, the [Runtime forensics playbook](../../skills/poteto-mode/playbooks/runtime-forensics.md) instruments the running process. For a profile you already captured, the [Trace forensics playbook](../../skills/poteto-mode/playbooks/trace-forensics.md) reads the artifact and maps the hot frame to source. Both return a diagnosis, not a fix:
+修正より先に原因を知りたいこともある。リーク、アイドル時の CPU の空回り、表示の乱れのように、いま起きている症状には、[実行時の解析（Runtime forensics）のプレイブック](../../skills/poteto-mode/playbooks/runtime-forensics.md) が、動いているプロセスに計測を仕込む。すでに取得したプロファイルには、[トレースの解析（Trace forensics）のプレイブック](../../skills/poteto-mode/playbooks/trace-forensics.md) が、その成果物を読み、時間を多く使っているフレームをソースに対応づける。どちらも修正ではなく診断を返す。
 
 ```text
 /poteto-mode here's a cpuprofile from the slow startup. tell me where the time goes and which source lines own it. no fix yet.
 ```
 
-## Write the failing test first with `/tdd`
+## `/tdd` で失敗するテストを先に書く（Write the failing test first with `/tdd`）
 
-When a bug has a cheap local test path, the whole prompt can be two words:
+手元で手軽にテストできるバグなら、プロンプト全体が 2 語で済む。
 
 ```text
 /tdd implement
 ```
 
-In context, that's enough. [`/tdd`](../../skills/tdd/SKILL.md) writes the smallest test that fails for the intended reason, then the fix, then reruns the test. If a test would need broad harness setup or brittle mocks, the skill says so and uses the closest executable check instead. Don't force a test where a real command is stronger evidence.
+文脈がそろっていれば、これで足りる。[`/tdd`](../../skills/tdd/SKILL.md) は、意図した理由で失敗する最小のテストを書き、次に修正を書き、テストを再実行する。テストに大がかりなハーネスの準備や壊れやすいモックが必要になるなら、スキルはそう伝え、代わりに最も近い実行可能な確認を使う。実際のコマンドのほうが強い証拠になる場面で、無理にテストを書かない。
 
-## Load the TypeScript rules by name
+## TypeScript の規則は名前で読み込む（Load the TypeScript rules by name）
 
-[`typescript-best-practices`](../../skills/typescript-best-practices/SKILL.md) turns the type-system principles into concrete rules: discriminated unions, `unknown` at boundaries, exhaustive variants, schema-derived types. It doesn't load on its own, so type `/typescript-best-practices` when a task touches `.ts` or `.tsx` files.
+[`typescript-best-practices`](../../skills/typescript-best-practices/SKILL.md) は、型システムの原則を具体的な規則にしたものである。判別可能なユニオン、境界での `unknown`、バリアントの網羅、スキーマから導いた型などがある。自動では読み込まれないので、`.ts` や `.tsx` のファイルに触れるタスクでは `/typescript-best-practices` と入力する。
 
-## Clean before you commit
+## コミットの前に片付ける（Clean before you commit）
 
-The [Opening a PR playbook](../../skills/poteto-mode/playbooks/opening-a-pr.md) runs `/deslop` on the diff before each commit, and poteto-mode applies [`/unslop`](../../skills/unslop/SKILL.md) to the PR description and commit bodies. `/deslop` ships in the `cursor-team-kit` plugin, not in pstack. If you don't have it, ask for the same outcome in plain words: remove narrating comments, unsupported guards, dead compatibility paths, and unrelated edits.
+[PR を開く（Opening a PR）のプレイブック](../../skills/poteto-mode/playbooks/opening-a-pr.md) は、コミットのたびに、その前に diff へ `/deslop` をかける。poteto-mode は、PR の説明とコミットの本文に [`/unslop`](../../skills/unslop/SKILL.md) を適用する。`/deslop` は pstack ではなく `cursor-team-kit` プラグインに同梱されている。入っていなければ、同じ結果を普通の言葉で頼む。処理をなぞるだけのコメント、根拠のないガード、使われていない互換用の経路、無関係な編集を取り除くように、と頼めばよい。
 
-For prose, `/unslop` takes a target and any extra rules you have:
+文章には、`/unslop` に対象と、追加したい規則があればそれも渡す。
 
 ```text
 /unslop the readme changes, no emdashes
 ```
 
-You'll develop your own shorthand. The skill reads intent fine from terse prompts like `unslop that, tighten it`.
+使ううちに、自分なりの略記ができてくる。このスキルは、`unslop that, tighten it` のような短いプロンプトからでも意図を十分に読み取る。
 
-## Strip the comments with `/no-comments`
+## `/no-comments` でコメントを取り除く（Strip the comments with `/no-comments`）
 
-Comments need their own pass, and not from the agent that wrote them. An author defends its comments the way you'd defend yours. So before review, hand them to fresh eyes:
+コメントには専用の見直しが必要であり、それはコメントを書いたエージェント以外が行わなければならない。書き手は、人が自分のコメントをかばうのと同じように、自分のコメントをかばう。だから、レビューの前に、コメントを書いていない者に見せる。
 
 ```text
 /no-comments the diff
 ```
 
-[`/no-comments`](../../skills/no-comments/SKILL.md) spawns [Comment Sicko](../../agents/comment-sicko.md), a read-only reviewer with a short keep list: license headers, doc comments on a public API, links that explain what code can't, behavior forced by an external dependency you can't reshape. Everything else goes. A surprise in your own code gets no such pass. The comment comes back as a refactor flag, and `/no-comments` fixes the flags it accepts at the root cause. When a comment claims a constraint, "do not remove", the skill offers to encode the claim as a type, test, or lint. Either way, the comment comes out.
+[`/no-comments`](../../skills/no-comments/SKILL.md) は [Comment Sicko](../../agents/comment-sicko.md) を起動する。Comment Sicko は読み取り専用のレビュアーで、残してよいものの短い一覧を持っている。ライセンスのヘッダー、公開 API のドキュメントコメント、コードでは表せないことを説明するリンク、作り変えられない外部依存のせいでそうせざるを得ない振る舞いである。それ以外はすべて消す。自分のコードの中にある意外な箇所には、こうした免除はない。そのコメントはリファクタリングを求めるフラグとして返され、`/no-comments` は受け入れたフラグを根本原因から直す。「do not remove」（消さないこと）のように制約を主張するコメントなら、その主張を型、テスト、lint として表現することをスキルが提案する。いずれにしても、コメントは取り除かれる。
 
-The division of labor is worth keeping straight. `/deslop` cleans slop out of the code, `/unslop` cleans it out of prose, and `/no-comments` hands the comments to a reviewer who didn't write them.
+役割分担は、はっきり区別しておくとよい。`/deslop` はコードから slop（AI が書きがちな冗長で空疎な記述）を取り除き、`/unslop` は文章から slop を取り除き、`/no-comments` はコメントを、それを書いていないレビュアーに渡す。
 
-**Pitfall:** cleanup is not optional polish. A diff with narrating comments and defensive dead weight reads as unfinished to reviewers, and the extra code is where the next bug hides. If the diff feels padded, say `deslop it` before you commit, not after review calls it out.
+**落とし穴：** 片付けは、やってもやらなくてもよい仕上げではない。処理をなぞるだけのコメントや、防御のためだけの不要なコードが残った diff は、レビュアーには未完成に見える。そして、次のバグはその余分なコードに潜む。diff が水増しされていると感じたら、レビューで指摘されてからではなく、コミットの前に `deslop it` と言う。
 
-Next: [Verify and ship](./06-verify-and-ship.md).
+次は [検証してリリースする（Verify and ship）](./06-verify-and-ship.md)。

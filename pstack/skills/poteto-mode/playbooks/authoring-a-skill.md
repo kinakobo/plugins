@@ -1,12 +1,12 @@
-### Authoring or modifying a skill
+### スキルの作成・変更（Authoring or modifying a skill）
 
-**You own the skill's voice.**
+**スキルの語り口に責任を持つ。**
 
-1. Use the **create-skill** skill (Cursor's built-in for authoring SKILL.md files).
-2. Validate the skill: frontmatter has `name` and `description`, referenced files exist, cross-skill links resolve.
-3. Test cases if structural. Skip if subjective.
-4. Run **Opening a PR**.
+1. **create-skill** スキル（SKILL.md を書くための Cursor の組み込みスキル）を使う。
+2. スキルを検証する。frontmatter に `name` と `description` があること、参照しているファイルが存在すること、スキル間のリンクが解決できることを確かめる。
+3. 構造に関わる内容ならテストケースを用意する。主観的な内容なら省く。
+4. **PR を開く（Opening a PR）** を実行する。
 
-When in doubt, delete. Keep only prose that changes a decision. Tell it to do the thing and skip the reason. Explain only when the rule is confusing without one. Match tone to scope. Point at structural sources (types, READMEs, config) per the **encode-lessons-in-structure** principle skill. Delegate to other skills by path. Don't restate. A workflow you keep hitting but isn't captured → propose a new skill.
+迷ったら削る。判断を変える文章だけを残す。やることを指示し、理由は省く。説明するのは、理由がないと規則が分かりにくいときだけにする。語調は対象の範囲に合わせる。**encode-lessons-in-structure** 原則スキルに従い、構造的な情報源（型、README、設定）を指し示す。ほかのスキルにはパスで委ねる。内容を繰り返し書かない。何度も出てくるのにスキルになっていない作業手順 → 新しいスキルを提案する。
 
-**Reply:** summary of the skill, key design decisions, validation notes.
+**返答：** スキルの概要、主な設計上の判断、検証の記録。

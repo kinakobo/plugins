@@ -1,35 +1,35 @@
 ---
 name: recall
-description: "Reconstruct your recent working context from your own chat history, live state, and the shared record (user reports, prior fixes, incidents), then hand back a tight current-state brief. Use for 'recall my work on X', 'catch me up', 'what have I been working on', 'where did I leave off', before starting or resuming work."
+description: "自分のチャット履歴、現在の状態、共有の記録（ユーザーからの報告、過去の修正、インシデント）から最近の作業の文脈を組み立て直し、現状を簡潔にまとめた報告を返す。「X についての作業を思い出して（recall my work on X）」「状況に追いつかせて（catch me up）」「最近何をしていたか」「どこまでやったか」と言われたとき、作業を始める前や再開する前に使う。"
 disable-model-invocation: true
 ---
 
-# Recall
+# 作業を思い出す（Recall）
 
-**Before you start or resume work, you rebuild the user's recent working context and hand back a tight capsule of where things stand now and what to do next.**
+**作業を始める前や再開する前に、ユーザーの最近の作業の文脈を組み立て直し、いまどういう状況で、次に何をするかを簡潔にまとめた概要（capsule）を返す。**
 
-Keep it tight and on-topic. Read only what the in-scope threads need, then stop.
+簡潔に、話題から外れずに書く。範囲内の作業のスレッドに必要なものだけを読み、そこで止める。
 
-Your context lives in two records. Your own chat history holds what you did and decided. The shared record holds everything that happened around the same code under other names: the symptoms users keep reporting, the fixes that shipped and got reverted, the errors still firing in prod. That second record lives in source control, the issue tracker, chat and issue channels, long-form docs, and error tracking. A feature with a long bug tail keeps most of its story there, so don't reconstruct it from your transcripts alone.
+文脈は 2 つの記録に含まれている。自分のチャット履歴には、自分が何をし、何を決めたかが残っている。共有の記録には、同じコードの周りでほかの人の名前のもとで起きたことが、すべて残っている。ユーザーが繰り返し報告している症状、リリースされたあと revert された修正、本番でまだ発生しているエラーなどである。この 2 つ目の記録は、ソース管理、課題管理システム、チャットや課題のチャンネル、長い文書、エラートラッキングにある。バグが長く尾を引いている機能では、経緯の大半がそちらに残っているので、自分のトランスクリプトだけから組み立て直さない。
 
-Transcripts live at `~/.cursor/projects/<slug>/agent-transcripts/<uuid>/<uuid>.jsonl`, where `<slug>` is the workspace path with the leading slash dropped and each "/" turned into "-" (so `/Users/you/proj` becomes `Users-you-proj`). Every line is one chat message.
+トランスクリプトは `~/.cursor/projects/<slug>/agent-transcripts/<uuid>/<uuid>.jsonl` にある。`<slug>` は、ワークスペースのパスから先頭のスラッシュを取り除き、各 "/" を "-" に置き換えたものである（`/Users/you/proj` なら `Users-you-proj`）。各行が 1 つのチャットメッセージである。
 
-1. Classify, then route. One specific prior chat to resume is the `session-pickup` playbook, not this. Turning habits into a durable skill is `automate-me`. A human-readable summary of your work is a different task. Recall loads working context across recent chats before you act. If the user already gave you a full state capsule (paths, branch, the change), use it and skip the mining.
-2. Lock the scope before searching. Pin the window ("recent" is a real range, default the last 7 days), the topic if named, and the workspace (default the active one. Never read another project's transcripts without being asked). State the scope back. Never quietly turn "all" into "recent N".
-3. Fan out across your chat history. Spawn parallel subagents on a fast, cheap model, each taking a slice of the corpus. Tell every subagent to order candidates by real modification time (`ls -t`) and never by UUID name, grep the topic first and then read only the matching chats and only their relevant regions, and skip the current chat plus obvious noise (subagent, eval, and test chats). Each returns the same schema, one block per chat: topic, the user's goal, decisions, open threads, struggles and corrections, and artifacts (PRs, tickets, branches), each citing the chat UUID. For one or two chats, skip the fan-out and search directly. The raw transcripts stay in the subagents. The main thread gets only their findings. Pick each subagent's reasoning level for the job, per the Subagents section of the **poteto-mode** skill.
-4. Sweep the shared record whenever the topic names a feature, file, subsystem, area, or bug. This is the default, not a judgment call, and "my work on X" does not exempt it. Spawn one investigator subagent per source, in agent mode because readonly strips MCP access, and ask each "what's the current state, what's been tried and didn't hold, and what are users still reporting". Run them in parallel with the chat-history mining. Null results are findings. Skip an unavailable MCP and say so. Fold what comes back into the brief. Skip this step only for pure activity recall with no named target ("what did I do this week"), where your own history and live state are the entire answer.
-5. Verify against live state. Take the PRs, branches, and tickets that the mining and the sweep surfaced and check them with `git` and `gh`. When the answer hinges on what an agent actually did (the tools it ran, files it read, errors it hit), read the full transcript, not just a trimmed local copy.
-6. Write the brief to the contract below. Group by thread. Stay on the named topic.
+1. 分類してから振り分ける。特定の過去のチャット 1 つを再開するなら、このスキルではなく `session-pickup` プレイブックを使う。習慣を長く使えるスキルにするなら `automate-me` を使う。自分の作業を人間向けに要約するのは別のタスクである。recall は、行動する前に、最近の複数のチャットにまたがる作業の文脈を読み込む。ユーザーがすでに状態の概要を一式（パス、ブランチ、変更内容）渡しているなら、それを使い、履歴の掘り起こしは省く。
+2. 検索する前に範囲を確定する。期間（「最近」は実際の範囲であり、既定は直近 7 日）、話題が指定されていればその話題、ワークスペース（既定は現在のもの。頼まれない限り、決してほかのプロジェクトのトランスクリプトを読まない）を固定する。確定した範囲を復唱する。「すべて」を黙って「最近の N 件」に変えることは決してしない。
+3. チャット履歴に対してファンアウトする。速くて安いモデルでサブエージェントを並列に起動し、それぞれにコーパスの一部を担当させる。どのサブエージェントにも次のことを指示する。候補は実際の更新時刻（`ls -t`）の順に並べ、決して UUID の名前の順にしない。まず話題で grep し、一致したチャットの、関係のある部分だけを読む。現在のチャットと、明らかなノイズ（サブエージェント、eval、テストのチャット）は飛ばす。各サブエージェントは同じスキーマで、チャットごとに 1 ブロックを返す。ブロックの中身は、話題、ユーザーの目的、決定、未解決のスレッド、苦労した点と訂正、成果物（PR、チケット、ブランチ）で、それぞれにチャットの UUID を添える。チャットが 1〜2 個なら、ファンアウトせずに直接検索する。生のトランスクリプトはサブエージェントの中にとどめる。メインのスレッドには調査結果だけを渡す。**poteto-mode** スキルのサブエージェント（Subagents）の節に従い、サブエージェントごとに、仕事に合った推論の水準を選ぶ。
+4. 話題が機能、ファイル、サブシステム、領域、バグを名指ししているときは、必ず共有の記録を洗う。これは判断で決めることではなく既定の動作であり、「X についての自分の作業」という頼み方でも免除されない。情報源ごとに調査役のサブエージェントを 1 つ起動する。readonly にすると MCP にアクセスできなくなるので、agent モードで起動する。それぞれに「現状はどうなっているか、何が試されて持ちこたえなかったか、ユーザーはまだ何を報告しているか」を尋ねる。これらはチャット履歴の掘り起こしと並列に実行する。何も見つからなかったことも調査結果である。使えない MCP は飛ばし、そのことを報告する。返ってきた内容を報告（brief）にまとめる。この手順を省くのは、対象を名指ししない純粋な活動の振り返り（「今週何をしたか」）のときだけである。その場合は、自分の履歴と現在の状態がそのまま答えになる。
+5. 現在の状態と照らし合わせて確かめる。履歴の掘り起こしと共有の記録の調査で見つかった PR、ブランチ、チケットを、`git` と `gh` で確認する。答えが、エージェントが実際に何をしたか（実行したツール、読んだファイル、遭遇したエラー）にかかっているときは、切り詰めたローカルのコピーだけでなく、トランスクリプト全体を読む。
+6. 下の出力の取り決めに従って報告を書く。スレッドごとにまとめる。指定された話題から外れない。
 
-## Output contract
+## 出力の取り決め（Output contract）
 
-Lead with the capsule, then the thread status, then the problems, then the next move. Deeper detail goes below or gets cut.
+概要を先頭に置き、次にスレッドの状態、次に問題、最後に次の一手を書く。それより詳しい内容は、その下に置くか削る。
 
-- **Capsule.** At most 5 bullets. What this work is and where it stands overall.
-- **Threads.** One line each, prefixed with exactly one status tag: `[merged #N]`, `[open PR #N]`, `[in flight <branch>]`, `[verified, uncommitted]`, `[reverted #N]`, or `[planned, not started]`. A thread with no tag is not done yet, so tag it.
-- **Problems.** At most 5, the recurring ones. Include the symptoms users keep reporting and any fix that shipped and was reverted, so the next attempt starts where the last one failed.
-- **Next move.** The single most useful next action, concrete.
+- **概要（Capsule）。** 箇条書きで 5 項目まで。この作業が何で、全体としてどういう状況か。
+- **スレッド（Threads）。** 1 つにつき 1 行で、先頭に状態のタグをちょうど 1 つ付ける: `[merged #N]`、`[open PR #N]`、`[in flight <branch>]`、`[verified, uncommitted]`、`[reverted #N]`、`[planned, not started]`。タグのないスレッドの行は書きかけなので、タグを付ける。
+- **問題（Problems）。** 繰り返し起きているものを 5 つまで。ユーザーが繰り返し報告している症状と、リリースされたあと revert された修正を含め、次の試みが前回失敗したところから始められるようにする。
+- **次の一手（Next move）。** 次に取るべき、最も役に立つ行動を 1 つ、具体的に。
 
-An adjacent feature or ticket stays out unless it blocks this one. When the capsule and thread lines outgrow a screen, cut detail before you cut threads. Write the brief through the **unslop** skill, cite chat findings by UUID and shared-record findings by their source (PR #, ticket ID, chat permalink, error-tracker issue), and sanitize private context before any public output.
+隣接する機能やチケットは、この作業を妨げていない限り含めない。概要とスレッドの行が 1 画面に収まらなくなったら、スレッドを削る前に詳細を削る。報告は **unslop** スキルを通して書き、チャットからの知見は UUID で、共有の記録からの知見は出典（PR の番号、チケットの ID、チャットのパーマリンク、エラートラッキングの issue）で示す。公開の場に出す前に、非公開の文脈を取り除く。
 
-**Reply:** the brief, to the contract above.
+**返答:** 上の取り決めに従った報告。

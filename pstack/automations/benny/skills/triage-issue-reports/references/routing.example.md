@@ -1,8 +1,8 @@
-# Routing map example
+# 振り分けマップの例（Routing map example）
 
-Copy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/routing.md`, and replace every placeholder. Point `routing.map_path` at the copy. Pack refreshes must not overwrite it.
+このファイルを `.cursor/automations/benny/` の外（たとえば `.cursor/benny/routing.md`）にコピーし、すべてのプレースホルダーを置き換える。`routing.map_path` にはコピーしたファイルを指定する。パックを更新しても、このコピーを上書きしてはならない。
 
-The triage skill treats this as data. A route needs evidence from the report or cause trace. A keyword match alone is not enough.
+トリアージのスキルは、このファイルをデータとして扱う。振り分けるには、報告か原因の追跡から得た証拠が必要である。キーワードの一致だけでは足りない。
 
 ```yaml
 routes:
@@ -51,11 +51,11 @@ ping_policy:
     - "unverified-owner"
 ```
 
-## Rules
+## 規則（Rules）
 
-- Leave `fallback.destination` empty unless one team accepts all unmatched reports.
-- Use stable product areas, code paths, and error signatures.
-- Do not include private data in a public copy.
-- Do not paste raw user or channel IDs into an example that will be published.
-- Keep feature-owner pings off until the target team agrees to them.
-- A reroute tells the reporter where to go. The automation never cross-posts.
+- どこにも一致しない報告をすべて引き受けるチームがない限り、`fallback.destination` は空にしておく。
+- 変わりにくい製品の領域、コードパス、エラーのシグネチャを使う。
+- 公開するコピーに非公開のデータを含めない。
+- 公開する例に、ユーザーやチャンネルの ID をそのまま貼らない。
+- 機能の担当者へのメンションは、対象のチームが同意するまで無効にしておく。
+- 振り分け直しでは、報告者にどこへ行けばよいかを伝える。Automation は決してクロスポストしない。

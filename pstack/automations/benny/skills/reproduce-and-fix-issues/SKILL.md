@@ -1,69 +1,69 @@
 ---
 name: reproduce-and-fix-issues
-description: Reproduce triaged Slack bugs through a configured app-control adapter, verify existing fixes, and open a bounded draft pull request only after before-and-after proof. Use only from the configured Benny repro automation.
+description: トリアージ済みの Slack のバグ報告を、設定されたアプリの操作アダプターを通して再現し、既存の修正を検証し、修正前後の証明がそろったあとに限って、範囲を限ったドラフトのプルリクエストを開く。設定済みの Benny の再現用 Automation からだけ使う。
 disable-model-invocation: true
 ---
 
-# Reproduce and fix issues
+# 報告された不具合を再現して直す（Reproduce and fix issues）
 
-Wait for a trusted triage marker in the source thread. Reproduce the exact symptom through the target app's real UI. Verify an existing fix when one exists. Attempt a bounded fix only after a confirmed repro.
+報告元のスレッドに、信頼できるトリアージのマーカーが付くのを待つ。対象アプリの実際の UI を通して、報告された症状そのものを再現する。既存の修正があれば、それを検証する。範囲を限った修正は、再現が確定したあとに限って試みる。
 
-Load the external Benny configuration supplied by the automation. If the config, required actions, control adapter, or completed feature map is missing, fail closed.
+Automation から渡される外部の Benny 設定を読み込む。設定、必須のアクション、操作アダプター（control adapter）、記入済みの機能マップ（feature map）のどれかが欠けていれば、安全側に倒して止まる（fail closed）。
 
-## Hard safety rules
+## 厳守する安全規則（Hard safety rules）
 
-- Freeze the source channel and root thread coordinates before doing any work.
-- Never post a root message in the source channel.
-- Preflight the source parent before every source-thread post.
-- The coordinator is the only Slack poster.
-- Delegated analysis workers are read-only and return findings or media notes.
-- A fix-phase code worker may edit only when its environment provably excludes Slack credentials and every Slack write action. Otherwise the coordinator edits.
-- Every child prompt must explicitly forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and all other Slack writes.
-- Never give a child a Slack token, posting instructions, source coordinates for posting, or permission to report externally.
-- If a child needs Slack write access to run, do not launch it.
-- Utility bots are evidence sources. They do not own the fix unless a person explicitly delegated the fix to them.
-- The exact discriminating symptom must appear twice through real UI interaction.
-- State inspection may confirm an observation. It must not inject or force the symptom.
-- No confirmed repro means no authored fix.
-- Existing pull requests or commits switch the run to verify mode. Do not author over them.
-- Use `github.com` pull request links.
-- Keep captures, recordings, logs, and tokens out of source control.
-- Use pstack's `principle-guard-the-context-window` for delegated analysis.
-- Apply pstack's `principle-sequence-verifiable-units`, `principle-fix-root-causes`, and `principle-prove-it-works` through repro, fix, and verification.
+- 作業を始める前に、報告元のチャンネルとルートスレッドの位置（coordinates）を固定する。
+- 報告元のチャンネルには、決してルートメッセージを投稿しない。
+- 報告元のスレッドに投稿するたびに、その前に報告元の親メッセージを事前確認（preflight）する。
+- Slack に投稿するのはコーディネーターだけである。
+- 分析を委任されたワーカーは読み取り専用で、調査結果かメディアについてのメモを返す。
+- 修正フェーズのコードワーカーが編集してよいのは、その環境に Slack の認証情報と Slack への書き込みアクションが一切無いことを証明できる場合に限る。そうでなければコーディネーターが編集する。
+- 子エージェントへのプロンプトにはすべて、`SendSlackMessage`、`PostToSlack`、`chat.postMessage`、その他すべての Slack への書き込みの禁止を明示しなければならない。
+- 子エージェントには、決して Slack のトークン、投稿の指示、投稿用の報告元の位置、外部へ報告する許可を渡さない。
+- 動かすのに Slack への書き込み権限が要る子エージェントは、起動しない。
+- ユーティリティのボットは証拠の出どころである。人が明示的に修正を任せない限り、ボットは修正の担当にならない。
+- 正常と異常を判別できる症状（discriminating symptom）そのものが、実際の UI 操作によって 2 回現れなければならない。
+- 状態の検査は、観察を裏づけるために使ってよい。症状を注入したり、無理に起こしたりするためには使わない。
+- 再現が確定していなければ、修正は書かない。
+- 既存のプルリクエストやコミットがあれば、実行を検証モードに切り替える。その上から修正を書かない。
+- プルリクエストのリンクは `github.com` のものを使う。
+- キャプチャ、録画、ログ、トークンはソース管理に入れない。
+- 委任した分析には、pstack の `principle-guard-the-context-window`（コンテキストウィンドウを守る）を使う。
+- 再現、修正、検証を通して、pstack の `principle-sequence-verifiable-units`（検証できる単位で順に進める）、`principle-fix-root-causes`（根本原因を直す）、`principle-prove-it-works`（動くことを証明する）を適用する。
 
-## 1. Freeze source coordinates
+## 1. 報告元の位置を固定する（Freeze source coordinates）
 
-Before making a work list or delegating:
+作業リストを作ったり委任したりする前に、次を行う。
 
-1. Require the trigger channel to equal the configured source channel.
-2. Set `SOURCE_THREAD_TS` to `trigger.thread_ts` when present. Otherwise use `trigger.ts`.
-3. Require a nonempty `SOURCE_THREAD_TS`.
-4. Store `SOURCE_CHANNEL_ID` and `SOURCE_THREAD_TS` as immutable values.
-5. Read the source thread and verify its root has those exact coordinates.
-6. Fetch the source permalink.
+1. トリガーのチャンネルが、設定された報告元のチャンネルと一致することを確かめる。
+2. `trigger.thread_ts` があれば `SOURCE_THREAD_TS` をその値にする。なければ `trigger.ts` を使う。
+3. `SOURCE_THREAD_TS` が空でないことを確かめる。
+4. `SOURCE_CHANNEL_ID` と `SOURCE_THREAD_TS` を変更できない値として保存する。
+5. 報告元のスレッドを読み、そのルートがちょうどその位置にあることを確かめる。
+6. 報告元のパーマリンクを取得する。
 
-Never replace these values with a reply timestamp, operations timestamp, or status-message timestamp.
+これらの値を、決して返信のタイムスタンプ、運用スレッドのタイムスタンプ、ステータスメッセージのタイムスタンプで置き換えない。
 
-Before every source-channel post:
+報告元のチャンネルに投稿するたびに、その前に次を行う。
 
-1. Read the thread by the immutable coordinates.
-2. Confirm the parent exists, is not deleted, and still belongs to the source channel.
-3. Send only with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`.
-4. Read the thread again and verify the new message is a reply.
+1. 変更できない位置の値でスレッドを読む。
+2. 親メッセージが存在し、削除されておらず、いまも報告元のチャンネルにあることを確かめる。
+3. `channel=SOURCE_CHANNEL_ID` と `thread_ts=SOURCE_THREAD_TS` だけを指定して送る。
+4. スレッドをもう一度読み、新しいメッセージが返信になっていることを確かめる。
 
-If any check fails, post nothing. Never retry at the root or in a fallback channel.
+どれかの確認に失敗したら、何も投稿しない。決してルートや代わりのチャンネルで再試行しない。
 
-## 2. Wait for the triage contract
+## 2. トリアージの契約を待つ（Wait for the triage contract）
 
-Watch the source thread for the configured verdict budget. Stay silent while waiting.
+設定された判定の待ち時間（verdict budget）のあいだ、報告元のスレッドを監視する。待っているあいだは何も投稿しない。
 
-Accept a verdict only when:
+判定を受け入れるのは、次をすべて満たすときだけである。
 
-- Its author matches `slack.triage_identity_user_id`.
-- It is a reply under `SOURCE_THREAD_TS`.
-- It contains exactly one configured marker.
+- 投稿者が `slack.triage_identity_user_id` と一致する。
+- `SOURCE_THREAD_TS` の下の返信である。
+- 設定されたマーカーをちょうど 1 つ含む。
 
-Public marker forms:
+公開されているマーカーの形式は次のとおりである。
 
 ```text
 [benny:bug]
@@ -73,238 +73,238 @@ Public marker forms:
 [benny:other]
 ```
 
-Proceed only for `bug` or `performance`. Capture the optional tracker URL. Stop silently for `other`, a missing verdict, an untrusted author, conflicting markers, or a timeout.
+先に進むのは `bug` か `performance` のときだけである。任意のトラッカーの URL があれば控えておく。`other`、判定が無い、投稿者が信頼できない、マーカーが矛盾している、時間切れのいずれかなら、何も投稿せずに止まる。
 
-This marker replaces private bot identities and free-form verdict matching.
+このマーカーは、特定の非公開のボットの ID や、自由形式の判定文の照合に代わるものである。
 
-## 3. Apply ownership and fix-artifact gates
+## 3. 担当と修正の成果物のゲートを適用する（Apply ownership and fix-artifact gates）
 
-Re-read the thread immediately before starting work.
+作業を始める直前に、スレッドを読み直す。
 
-### Someone is explicitly fixing it
+### 誰かが明示的に修正している（Someone is explicitly fixing it）
 
-Stop when a person clearly claims the fix, gives a concrete implementation plan, or asks another agent to implement, patch, fix, or open a pull request.
+人が修正を担当するとはっきり名乗ったとき、具体的な実装の計画を示したとき、あるいは別のエージェントに実装、パッチ、修正、プルリクエストの作成を頼んだときは、止まる。
 
-Do not treat these as fix ownership:
+次は、修正の担当とは見なさない。
 
-- A bot summarizes evidence.
-- A tool looks up logs or tickets.
-- Someone asks a bot to diagnose, explain, inspect, or reproduce.
-- A bot posts a cause hypothesis without agreeing to implement it.
+- ボットが証拠を要約する。
+- ツールがログやチケットを調べる。
+- 誰かがボットに、診断、説明、調査、再現を頼む。
+- ボットが、実装を引き受けないまま原因の仮説を投稿する。
 
-Judge the requested action, not the presence of a bot.
+ボットがいるかどうかではなく、依頼された行為で判断する。
 
-### A fix artifact already exists
+### 修正の成果物がすでにある（A fix artifact already exists）
 
-If an open pull request or merged commit plausibly fixes this report, switch to `references/verify-existing-fix.md`.
+この報告を直していると考えられる、オープンなプルリクエストかマージ済みのコミットがあれば、`references/verify-existing-fix.md` に切り替える。
 
-An artifact may come from the thread, tracker issue, repository history, or pull request search. A claim without a commit or pull request is not a fix artifact.
+成果物の出どころは、スレッド、トラッカーの issue、リポジトリの履歴、プルリクエストの検索のどれでもよい。コミットもプルリクエストも伴わない主張は、修正の成果物ではない。
 
-If a person owns the work but has not produced an artifact, stop. Do not race them.
+人が作業を担当しているが成果物をまだ出していないなら、止まる。その人と先を争わない。
 
-## 4. Open an optional operations thread
+## 4. 任意の運用スレッドを開く（Open an optional operations thread）
 
-If `slack.operations_channel_id` is configured, the coordinator may create one root status message there. This is the only allowed root post in the repro workflow.
+`slack.operations_channel_id` が設定されていれば、コーディネーターはそこにルートのステータスメッセージを 1 つ作ってよい。再現のワークフローで許されるルートへの投稿は、これだけである。
 
-Store its coordinates as `OPERATIONS_CHANNEL_ID` and `OPERATIONS_THREAD_TS`. Never confuse them with the source coordinates.
+その位置を `OPERATIONS_CHANNEL_ID` と `OPERATIONS_THREAD_TS` として保存する。決して報告元の位置と取り違えない。
 
-Use the configured plain Unicode status strings. Keep status text short:
+設定された、プレーンな Unicode のステータス文字列を使う。ステータスの文面は短くする。
 
-- Reproducing
-- Could not reproduce
-- Blocked
-- Reproduced
-- Verifying existing fix
-- Attempting bounded fix
-- Draft pull request opened
-- Fix did not land
+- Reproducing（再現中）
+- Could not reproduce（再現できなかった）
+- Blocked（進められない）
+- Reproduced（再現した）
+- Verifying existing fix（既存の修正を検証中）
+- Attempting bounded fix（範囲を限った修正を試行中）
+- Draft pull request opened（ドラフトのプルリクエストを開いた）
+- Fix did not land（修正を取り込めなかった）
 
-Prefer configured Cursor Slack actions. Use `BENNY_SLACK_BOT_TOKEN` only when the user configured it for a narrow missing capability such as editing this one status message. Never expose the token to a worker.
+設定済みの Cursor の Slack アクションを優先する。`BENNY_SLACK_BOT_TOKEN` を使うのは、このステータスメッセージ 1 つを編集するなど、足りない機能を狭く補うためにユーザーが設定したときだけである。決してトークンをワーカーに見せない。
 
-If no operations channel is configured, keep detailed status in the automation run output. Do not substitute a source-channel root message.
+運用チャンネルが設定されていなければ、詳しいステータスは Automation の実行の出力に残す。報告元のチャンネルのルートメッセージで代用しない。
 
-## 5. Load and check the control adapter
+## 5. 操作アダプターを読み込んで確かめる（Load and check the control adapter）
 
-Read `references/control-adapter.md` and the completed map at `control.feature_map_path`, then invoke the skill named by `control.skill_name`.
+`references/control-adapter.md` と、`control.feature_map_path` にある記入済みのマップを読み、`control.skill_name` が指すスキルを呼び出す。
 
-Find the feature-map section that matches the reported user path. Read it before driving the app. If no section covers the feature, mark the run blocked instead of inventing a path or selector.
+報告されたユーザーの操作の道筋に合う、機能マップの節を探す。アプリを操作する前にその節を読む。その機能を扱う節が無ければ、道筋やセレクターを作り出さずに、実行を blocked（進められない）にする。
 
-Require all seven capabilities:
+次の 7 つの機能をすべて必須とする。
 
-1. Bring up the configured target app and test environment.
-2. Navigate the mapped feature and exercise its documented states.
-3. Drive the real UI with clicks, typing, keys, scrolling, drag, resize, or navigation.
-4. Inspect state without mutating it.
-5. Capture screenshots.
-6. Start and stop a screen recording.
-7. Clean up processes, sessions, profiles, and temporary data.
+1. 設定された対象アプリとテスト環境を立ち上げる。
+2. マップにある機能へ移動し、文書化された状態を一通り操作する。
+3. クリック、入力、キー操作、スクロール、ドラッグ、リサイズ、ナビゲーションで、実際の UI を操作する。
+4. 状態を変えずに検査する。
+5. スクリーンショットを撮る。
+6. 画面の録画を始めて止める。
+7. プロセス、セッション、プロファイル、一時データを片付ける。
 
-If the adapter is absent or any required capability is missing, mark the operations status as blocked and stop. Do not pretend a screenshot, unit test, state mutation, or source reading is a UI repro.
+アダプターが無いか、必須の機能のどれかが欠けていれば、運用ステータスを blocked（進められない）にして止まる。スクリーンショット、単体テスト、状態の書き換え、ソースコードを読んだ結果を、UI での再現であるかのように扱わない。
 
-## 6. Study the report
+## 6. 報告を調べる（Study the report）
 
-Read the full source thread and tracker issue when present.
+報告元のスレッド全体と、あればトラッカーの issue を読む。
 
-Collect:
+次を集める。
 
-- Exact action path
-- Expected behavior
-- Observed behavior
-- Discriminating state where they diverge
-- Frequency
-- Version, environment, and platform
-- Attachments and error signatures
-- Candidate code area
+- 正確な操作の道筋
+- 期待される振る舞い
+- 観察された振る舞い
+- 両者が分かれる、判別できる状態
+- 頻度
+- バージョン、環境、プラットフォーム
+- 添付ファイルとエラーのシグネチャ
+- 候補となるコードの範囲
 
-Inspect screenshots and video. Use read-only parallel workers for code history, test ideas, blast-radius mapping, and media review when useful. Each worker gets a narrow question and the Slack-write prohibition.
+スクリーンショットと動画を確かめる。役に立つなら、コードの履歴、テストの案、影響範囲の洗い出し、メディアのレビューに、読み取り専用のワーカーを並列で使う。各ワーカーには、狭い問いと Slack への書き込みの禁止を渡す。
 
-Trace the action through the repository. Use pstack's `why` skill for regression history and defensive code. Form competing cause hypotheses and identify evidence that would separate them.
+操作をリポジトリの中で追跡する。リグレッションの履歴と防御的なコードには、pstack の `why` スキルを使う。原因について競合する仮説を立て、それらを区別できる証拠を特定する。
 
-## 7. Reproduce
+## 7. 再現する（Reproduce）
 
-Bring up the target app through the control adapter.
+操作アダプターを通して対象アプリを立ち上げる。
 
-Confirm the correct app, workspace, account, data set, and feature state before acting. Use stable app markers. Do not rely on window order or a familiar title alone.
+操作する前に、アプリ、ワークスペース、アカウント、データセット、機能の状態が正しいことを確かめる。安定したアプリのマーカーを使う。ウィンドウの順序や見慣れたタイトルだけに頼らない。
 
-Drive the reported path through real UI actions.
+報告された道筋を、実際の UI 操作でたどる。
 
-Before calling it reproduced:
+再現したと言う前に、次を行う。
 
-1. Name the correct final state.
-2. Name the broken final state.
-3. Reach the point where they diverge.
-4. Observe the broken state.
-5. Reset enough state to make the second attempt independent.
-6. Repeat the same path and observe the same broken state again.
-7. Cross-check a real state value when possible.
+1. 正しい最終状態を挙げる。
+2. 壊れた最終状態を挙げる。
+3. 両者が分かれる地点まで進む。
+4. 壊れた状態を観察する。
+5. 2 回目の試行が独立するように、必要なだけ状態をリセットする。
+6. 同じ道筋を繰り返し、同じ壊れた状態をもう一度観察する。
+7. できるなら、実際の状態の値と照合する。
 
-An expected dialog, loading state, or setup step is not the bug. Capture the final state that distinguishes correct from broken behavior.
+想定どおりのダイアログ、読み込み中の状態、準備の手順はバグではない。正しい振る舞いと壊れた振る舞いを判別できる最終状態をキャプチャする。
 
-Use the configured repro budget. If the symptom does not reproduce within it, report a clean `Could not reproduce` outcome. If the environment cannot provide a required capability, report `Blocked` and state what was missing.
+設定された再現の予算を使う。その中で症状が再現しなければ、`Could not reproduce` という明確な結果を報告する。必須の機能を環境が提供できなければ、`Blocked` を報告し、何が足りなかったかを述べる。
 
-## 8. Capture and review evidence
+## 8. 証拠をキャプチャしてレビューする（Capture and review evidence）
 
-For a successful repro:
+再現に成功したら、次を行う。
 
-- Record the full path through the symptom.
-- Capture a screenshot of the broken final state.
-- Save a short note with the exact steps and observed state.
-- Keep artifacts in the configured temporary artifact directory.
+- 症状に至るまでの道筋を最後まで録画する。
+- 壊れた最終状態のスクリーンショットを撮る。
+- 正確な手順と観察した状態を書いた短いメモを保存する。
+- 成果物は、設定された一時的な成果物のディレクトリに置く。
 
-Have a read-only media reviewer answer one question: does the evidence visibly show the discriminating broken state?
+読み取り専用のメディアレビュアーに、1 つの問いに答えさせる。証拠には、判別できる壊れた状態が目に見える形で写っているか。
 
-If the answer is no or uncertain, the repro is not confirmed. Capture better evidence or use `Could not reproduce`.
+答えが「いいえ」か不確かなら、再現は確定していない。もっと良い証拠をキャプチャするか、`Could not reproduce` にする。
 
-Post detailed evidence only in the operations thread when configured. Keep the source update concise.
+詳しい証拠は、運用スレッドが設定されているときに限り、そこにだけ投稿する。報告元への更新は簡潔にする。
 
-## 9. Report the repro outcome
+## 9. 再現の結果を報告する（Report the repro outcome）
 
-Update the operations status first.
+最初に運用ステータスを更新する。
 
-For `Could not reproduce` or `Blocked`, post nothing in the source thread. The operations thread or run output carries the result.
+`Could not reproduce` か `Blocked` のときは、報告元のスレッドに何も投稿しない。結果は運用スレッドか実行の出力に残す。
 
-For a confirmed repro, run the source preflight and post at most one unprompted source reply:
+再現が確定したときは、報告元の事前確認を行い、求められていない返信を報告元に多くとも 1 件だけ投稿する。
 
-- Say the issue reproduced.
-- Link the operations evidence thread when one exists.
-- Include at most three short findings.
-- Link the tracker issue when one exists.
-- Do not ping an owner by default.
+- 問題が再現したと伝える。
+- 運用の証拠スレッドがあれば、そのリンクを付ける。
+- 短い調査結果を多くとも 3 つ含める。
+- トラッカーの issue があれば、そのリンクを付ける。
+- 既定では担当者にメンションしない。
 
-Attach evidence only when the configured Slack action keeps it inside the same source thread and the organization's retention policy allows it.
+証拠を添付するのは、設定された Slack アクションが添付を同じ報告元のスレッドの中に留め、組織の保持ポリシーがそれを許すときだけである。
 
-Wait for the configured rejection window. If a person shows that the setup or interpretation was wrong, correct the repro once. Do not start the fix phase until the window closes without a valid rejection.
+設定された異議の受付期間（rejection window）のあいだ待つ。準備や解釈が間違っていたことを人が示したら、再現を 1 回だけやり直す。正当な異議が無いまま期間が終わるまで、修正フェーズを始めない。
 
-## 10. Verify an existing fix
+## 10. 既存の修正を検証する（Verify an existing fix）
 
-When a fix artifact exists, follow `references/verify-existing-fix.md`.
+修正の成果物があるときは、`references/verify-existing-fix.md` に従う。
 
-Verification must show the symptom on the baseline and its absence on the patched build. Both paths use the real UI twice.
+検証では、ベースラインで症状が出て、修正版のビルドでは出ないことを示さなければならない。どちらも実際の UI で 2 回ずつ確かめる。
 
-Do not edit the existing fix, add a competing patch, or open a replacement pull request.
+既存の修正を編集したり、競合するパッチを足したり、代わりのプルリクエストを開いたりしない。
 
-## 11. Qualify a bounded fix
+## 11. 範囲を限った修正に進めるか判定する（Qualify a bounded fix）
 
-Attempt a fix only when all of these hold:
+修正を試みるのは、次がすべて成り立つときだけである。
 
-- The outcome is a plain confirmed repro.
-- Media review confirmed the broken final state.
-- No existing fix artifact appeared.
-- No person claimed the fix during the rejection window.
-- Runtime evidence identifies the root cause.
-- The likely change fits the configured fix budget and repository scope.
-- The control adapter can run both baseline and patched builds.
+- 結果が、留保の付かない確定した再現である。
+- メディアのレビューで、壊れた最終状態が確認された。
+- 既存の修正の成果物が見つかっていない。
+- 異議の受付期間のあいだに、誰も修正の担当を名乗らなかった。
+- 実行時の証拠から根本原因が特定できている。
+- 見込まれる変更が、設定された修正の予算とリポジトリの範囲に収まる。
+- 操作アダプターが、ベースラインと修正版の両方のビルドを動かせる。
 
-If any condition fails, keep the repro report and stop without a pull request.
+どれかの条件を満たさなければ、再現の報告は残し、プルリクエストを作らずに止まる。
 
-When the gate passes, update operations status to `Attempting bounded fix`.
+ゲートを通ったら、運用ステータスを `Attempting bounded fix` に更新する。
 
-## 12. Root-cause and implement
+## 12. 根本原因を突き止めて実装する（Root-cause and implement）
 
-The coordinator owns every Slack post, the final diff review, commits, and the pull request.
+Slack への投稿、最終的な diff のレビュー、コミット、プルリクエストは、すべてコーディネーターが担当する。
 
-Read-only workers may:
+読み取り専用のワーカーがしてよいのは、次である。
 
-- Trace code and history
-- Propose tests
-- Map blast radius
-- Review a diff
-- Review media
+- コードと履歴を追跡する
+- テストを提案する
+- 影響範囲を洗い出す
+- diff をレビューする
+- メディアをレビューする
 
-They do not edit, run external writes, post status, or own the fix.
+ワーカーは、編集、外部への書き込み、ステータスの投稿をせず、修正の担当にもならない。
 
-A tightly scoped code edit may be delegated during this phase only when tool isolation removes Slack credentials and every Slack write action from that worker. Its prompt must still carry the explicit Slack-write ban. The coordinator reviews the edit and runs or verifies the required tests. If tool isolation is uncertain, keep the edit in the coordinator.
+このフェーズで、範囲を狭く絞ったコードの編集を委任してよいのは、ツールの隔離によってそのワーカーから Slack の認証情報と Slack への書き込みアクションがすべて取り除かれている場合に限る。その場合も、プロンプトには Slack への書き込みの禁止を明示しなければならない。コーディネーターは編集をレビューし、必要なテストを実行するか、その結果を確かめる。ツールの隔離が確かでなければ、編集はコーディネーターが行う。
 
-Confirm the mechanism with runtime evidence. Eliminate competing hypotheses before editing.
+実行時の証拠でメカニズムを確かめる。編集する前に、競合する仮説を排除する。
 
-Fix the root cause with the smallest justified change.
+根拠のある最小の変更で、根本原因を直す。
 
-- Invoke pstack's `tdd` skill when there is a cheap local test target, and write the failing test before the fix.
-- State why TDD was skipped when the path is expensive, unclear, or integration-heavy.
-- Keep unrelated cleanup out.
-- Stop if the change grows beyond the configured effort or risk budget.
+- 手軽に動かせるローカルのテスト対象があれば pstack の `tdd` スキルを呼び出し、修正の前に失敗するテストを書く。
+- 道筋が高くつく、不明瞭、あるいは結合テストに大きく頼るために TDD を省いたときは、その理由を述べる。
+- 関係のない整理は入れない。
+- 変更が、設定された作業量やリスクの予算を超えて大きくなったら止まる。
 
-## 13. Prove the fix
+## 13. 修正を証明する（Prove the fix）
 
-Keep the original baseline evidence.
+元のベースラインの証拠は残しておく。
 
-On the patched build:
+修正版のビルドで、次を行う。
 
-1. Run the same real UI path.
-2. Repeat it twice.
-3. Show that the broken state is gone.
-4. Show the expected state in its place.
-5. Capture an after recording and screenshot.
-6. Cross-check the same real state value used for the baseline.
+1. 同じ実際の UI の道筋をたどる。
+2. それを 2 回繰り返す。
+3. 壊れた状態が無くなったことを示す。
+4. その代わりに期待される状態が現れることを示す。
+5. 修正後の録画とスクリーンショットをキャプチャする。
+6. ベースラインで使ったのと同じ実際の状態の値と照合する。
 
-A compile, unit test, code review, or plausible diff is not after evidence.
+コンパイル、単体テスト、コードレビュー、もっともらしい diff は、修正後の証拠にならない。
 
-Run focused tests, then smoke the blast radius around the changed behavior. Cover nearby states, inputs, permissions, platforms, and failure paths that the change could affect. Stop without a pull request if a regression remains.
+対象を絞ったテストを実行し、そのあと、変えた振る舞いの周りの影響範囲をスモークテストする。変更が影響しうる、近くの状態、入力、権限、プラットフォーム、失敗時の道筋を確かめる。リグレッションが残っていれば、プルリクエストを作らずに止まる。
 
-## 14. Open a draft pull request
+## 14. ドラフトのプルリクエストを開く（Open a draft pull request）
 
-Only after before-and-after proof:
+修正前後の証明がそろってから、次を行う。
 
-- Review the final diff for unrelated changes and secrets.
-- Run the repository's required checks.
-- Create small ordered commits when the repository workflow allows it.
-- Open a draft pull request. Never merge or deploy from this workflow.
-- Link the configured tracker issue using the tracker's supported pull request syntax.
-- Use the configured public URL form, normally `https://github.com/{owner}/{repo}/pull/{number}`.
-- Include the repro steps, root cause, test result, before and after evidence, and blast-radius checks.
-- Run the pull request text and all Slack updates through pstack's `unslop` skill.
+- 最終的な diff に、関係のない変更や秘密情報が無いかをレビューする。
+- リポジトリで必須のチェックを実行する。
+- リポジトリのワークフローが許すなら、小さく順序立てたコミットを作る。
+- ドラフトのプルリクエストを開く。このワークフローから決してマージやデプロイをしない。
+- 設定されたトラッカーの issue を、そのトラッカーが対応しているプルリクエストの記法でリンクする。
+- 設定された公開 URL の形式を使う。通常は `https://github.com/{owner}/{repo}/pull/{number}` である。
+- 再現手順、根本原因、テストの結果、修正前後の証拠、影響範囲の確認を含める。
+- プルリクエストの文面と Slack への更新はすべて、pstack の `unslop` スキルにかける。
 
-If pull request creation fails, do not claim success. Keep the commit or branch state in the run output and mark operations status `Fix did not land`.
+プルリクエストの作成に失敗したら、成功したとは言わない。コミットやブランチの状態を実行の出力に残し、運用ステータスを `Fix did not land` にする。
 
-On success, mark operations status `Draft pull request opened` and post one concise reply in the operations thread with the linked pull request. Do not create a second source-channel root or unprompted source reply.
+成功したら、運用ステータスを `Draft pull request opened` にし、プルリクエストのリンクを付けた簡潔な返信を運用スレッドに 1 件投稿する。報告元のチャンネルに 2 つ目のルートメッセージを作ったり、求められていない返信を報告元にしたりしない。
 
-## 15. Follow-ups and cleanup
+## 15. フォローアップと片付け（Follow-ups and cleanup）
 
-Watch the configured operations thread for one follow-up window.
+設定された運用スレッドを、フォローアップの期間 1 回分だけ監視する。
 
-- Answer a direct question from evidence already gathered.
-- Apply one concrete correction and rerun the repro once when it invalidates the setup.
-- Stay out of human coordination and side chatter.
-- Stop when asked.
+- 直接の質問には、すでに集めた証拠から答える。
+- 具体的な訂正が準備の誤りを示すときは、1 つだけ反映し、再現を 1 回だけやり直す。
+- 人間どうしの調整や雑談には加わらない。
+- 止めるよう頼まれたら止まる。
 
-Always call the control adapter's cleanup capability. Keep artifacts only as long as the configured retention policy allows.
+操作アダプターの片付けの機能は必ず呼ぶ。成果物は、設定された保持ポリシーが許す期間だけ残す。

@@ -1,11 +1,11 @@
-### Runtime forensics
+### 実行時の解析（Runtime forensics）
 
-**You own the diagnosis. Instrument the live process, don't theorize from source.** The deliverable is a cited diagnosis, not a fix.
+**診断に責任を持つ。ソースから推論せず、動いているプロセスに計測を仕込む。** 求められる成果は出典を示した診断であり、修正ではない。
 
-1. Capture the live signal on the matching surface via the control skill: a CPU profile for a spinning process, a heap snapshot for a leak, a CDP trace for a visual glitch. A real artifact, not a guess.
-2. Reduce the artifact to the smoking gun: the function on the hot path, the retainer chain from the leaked object to a GC root, the loop firing without input. Parse large artifacts in a subagent (the **guard-the-context-window** principle skill), keep the reduced finding in the main thread. Pick each subagent's reasoning level for the job, per the Subagents section.
-3. Prove the mechanism before believing it. Inject instrumentation via CDP eval on the running process, or hotfix the live code without reloading, to confirm the hypothesis cheaply.
-4. Map the finding back to source: file, symbol, the line that allocates or schedules.
-5. Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only forensics`.
+1. 対応する画面で操作スキル（control skill）を使い、動いているプロセスの信号を取る。CPU を空回りさせているプロセスなら CPU プロファイル、リークならヒープスナップショット、表示の乱れなら CDP のトレースを取る。推測ではなく、実物の成果物を得る。
+2. 成果物を、決定的な証拠まで絞り込む。ホットパス上の関数、リークしたオブジェクトから GC ルートまでの保持元の連鎖（retainer chain）、入力なしに発火し続けるループなどである。大きな成果物はサブエージェントで解析し（**guard-the-context-window** 原則スキル）、絞り込んだ結果をメインのスレッドに残す。各サブエージェントの推論のレベルは、サブエージェント（Subagents）の節に従い、仕事に合わせて選ぶ。
+3. 仕組みを信じる前に証明する。動いているプロセスに CDP の eval で計測を注入するか、再読み込みせずに動いているコードをその場で書き換えて、仮説を安く確かめる。
+4. 結果をソースに対応づける。ファイル、シンボル、メモリを確保する行やスケジュールする行を特定する。
+5. スループットのチェックポイント（throughput checkpoint）は 1 行のままにする（`throughput checkpoint: n/a, read-only forensics`）。
 
-**Reply:** the signal captured, the reduced finding, how you proved the mechanism, the source location, artifact paths. No fix unless asked. Hand back to Bug fix or Perf once the cause is known.
+**返答：** 取った信号、絞り込んだ結果、仕組みをどう証明したか、ソースの場所、成果物のパス。頼まれない限り修正はしない。原因が分かったら、バグ修正（Bug fix）か性能問題（Perf）に引き継ぐ。

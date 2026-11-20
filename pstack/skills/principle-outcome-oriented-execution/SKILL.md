@@ -1,21 +1,21 @@
 ---
 name: principle-outcome-oriented-execution
-description: "Apply during planned rewrites and migrations with explicit phase boundaries. Converge on the target architecture; don't preserve smooth intermediate states with throwaway compatibility code."
+description: "フェーズの区切りが明示された、計画的な書き直しや移行の最中に適用する。目標のアーキテクチャに収束させ、使い捨ての互換コードで滑らかな中間状態を保とうとしない。"
 disable-model-invocation: true
 ---
 
-# Outcome-Oriented Execution
+# 成果志向で実行する（Outcome-Oriented Execution）
 
-Optimize for the intended, verifiable end state rather than preserving smooth intermediate states.
+滑らかな中間状態を保つことよりも、意図した、検証できる最終状態を最適化の目標にする。
 
-**Why:** Keeping every intermediate step fully stable often creates temporary compatibility code that becomes long-lived debt. Converge on the target architecture and prove correctness at explicit verification boundaries.
+**理由:** すべての中間段階を完全に安定させようとすると、一時的な互換コードが生まれ、それが長く残る負債になることが多い。目標のアーキテクチャに収束させ、明示した検証の区切りで正しさを証明する。
 
-**Core rule:**
-- Prioritize end-state integrity over transitional stability
-- Intermediate breakage is acceptable when it is planned, scoped, and reversible
+**中心の規則:**
+- 移行中の安定より、最終状態の完全さを優先する
+- 中間段階で壊れることは、計画され、範囲が限られ、元に戻せるなら許容する
 
-**Guardrails:**
-- Use this for planned rewrites and migrations with explicit phase boundaries
-- Declare where temporary breakage is acceptable
-- Keep high-signal checks for actively touched areas while migrating
-- Require full static and runtime verification at plan completion
+**ガードレール:**
+- フェーズの区切りが明示された、計画的な書き直しと移行に使う
+- 一時的に壊れてよい箇所を宣言する
+- 移行中も、手を入れている箇所には信頼性の高いチェックを残す
+- 計画の完了時には、静的な検証と実行時の検証をすべて求める

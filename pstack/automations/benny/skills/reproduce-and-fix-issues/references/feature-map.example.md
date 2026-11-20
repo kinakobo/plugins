@@ -1,205 +1,205 @@
-# Feature-map example
+# 機能マップの例（Feature-map example）
 
-Map every user-facing feature Benny may reproduce. Read the relevant section before driving the app. Keep this map at the user point of view. Discover internals and current code paths at runtime instead of freezing them here.
+Benny が再現する可能性のある、ユーザーから見えるすべての機能をマップに書く。アプリを操作する前に、関係する節を読む。このマップはユーザーの視点で書く。内部の仕組みや現在のコードの道筋は、ここに固定して書かず、実行時に調べる。
 
-Copy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/feature-map.md`, and set `control.feature_map_path` to the copy. Pack refreshes must not overwrite it.
+このファイルを `.cursor/automations/benny/` の外、たとえば `.cursor/benny/feature-map.md` にコピーし、`control.feature_map_path` をそのコピーに設定する。パックを更新したときに、コピーが上書きされてはならない。
 
-## Per-feature template
+## 機能ごとのテンプレート（Per-feature template）
 
 ### `<feature name>`
 
 `<one-line user-visible purpose>`
 
-#### How a user gets there
+#### ユーザーがたどり着く方法（How a user gets there）
 
-- Click path: `<screen> -> <menu, tab, or panel> -> <control>`
-- Keyboard shortcut: `<shortcut or none>`
+- クリックの道筋: `<screen> -> <menu, tab, or panel> -> <control>`
+- キーボードショートカット: `<shortcut or none>`
 
-#### How the control adapter drives it
+#### 操作アダプターによる操作（How the control adapter drives it）
 
-- `<adapter action>` with `<inputs>` should `<visible result>`.
-- Reset: `<how the adapter returns to a fresh state>`.
+- `<adapter action>` に `<inputs>` を渡すと、`<visible result>` になるはずである。
+- リセット: `<how the adapter returns to a fresh state>`。
 
-#### Stable selectors
+#### 安定したセレクター（Stable selectors）
 
 - `<role and accessible name>`
 - `<ARIA relationship>`
 - `<data-component or purpose-named data attribute>`
 
-Never use generated CSS or StyleX classes, dynamic hashes, child indexes, or brittle DOM position.
+生成された CSS や StyleX のクラス、動的なハッシュ、子要素のインデックス、壊れやすい DOM 上の位置は決して使わない。
 
-#### States to exercise
+#### 操作する状態（States to exercise）
 
-- Default, hover, focus-visible, active, disabled
-- Loading, empty, error
-- Selected, open, expanded
+- 既定、ホバー、focus-visible、アクティブ、無効
+- 読み込み中、空、エラー
+- 選択中、開いている、展開
 - `<relevant feature-specific variants>`
 
-Mark states that do not apply.
+該当しない状態には、そのことを書いておく。
 
-#### Preconditions and setup
+#### 前提条件と準備（Preconditions and setup）
 
-- Auth: `<account state>`
-- Data: `<fixture>`
-- Permissions: `<role>`
-- Flags: `<flag or none>`
-- Services: `<required availability>`
+- 認証: `<account state>`
+- データ: `<fixture>`
+- 権限: `<role>`
+- フラグ: `<flag or none>`
+- サービス: `<required availability>`
 
-#### Evidence and cross-check
+#### 証拠と照合（Evidence and cross-check）
 
-- Screenshot: `<app identity, feature, and discriminating state>`
-- Video: `<entry path, interaction, and final state>`
-- Cross-check: `<read-only state or value that confirms the UI>`
+- スクリーンショット: `<app identity, feature, and discriminating state>`
+- 動画: `<entry path, interaction, and final state>`
+- 照合: `<read-only state or value that confirms the UI>`
 
-#### Gotchas
+#### 注意点（Gotchas）
 
 - `<known dead end or wrong surface>`
 - `<safe environment translation>`
 
-## Fictional example
+## 架空の例（Fictional example）
 
-These features belong to a fictional task app. They are examples, not required Benny features.
+これらの機能は、架空のタスク管理アプリのものである。例であって、Benny に必須の機能ではない。
 
-### Sign in
+### サインイン（Sign in）
 
-Lets a user enter the task app.
+ユーザーがタスク管理アプリに入れるようにする。
 
-#### How a user gets there
+#### ユーザーがたどり着く方法（How a user gets there）
 
-- Open the app and choose `Sign in`. No shortcut.
+- アプリを開き、`Sign in` を選ぶ。ショートカットは無い。
 
-#### How the control adapter drives it
+#### 操作アダプターによる操作（How the control adapter drives it）
 
-- `open_app`, `click Sign in`, `fill credentials`, and `click Continue` should open the item list.
-- Reset by signing out and clearing the disposable session.
+- `open_app`、`click Sign in`、`fill credentials`、`click Continue` で、アイテムの一覧が開くはずである。
+- サインアウトして使い捨てのセッションを消すことで、リセットする。
 
-#### Stable selectors
+#### 安定したセレクター（Stable selectors）
 
-- Button `Sign in`, textboxes `Email` and `Password`, `data-component="sign-in-form"`
+- ボタン `Sign in`、テキストボックス `Email` と `Password`、`data-component="sign-in-form"`
 
-#### States to exercise
+#### 操作する状態（States to exercise）
 
-- Default, focus-visible, submitting, disabled, loading, error
+- 既定、focus-visible、送信中、無効、読み込み中、エラー
 
-#### Preconditions and setup
+#### 前提条件と準備（Preconditions and setup）
 
-- Disposable account and available authentication service
+- 使い捨てのアカウントと、利用できる認証サービス
 
-#### Evidence and cross-check
+#### 証拠と照合（Evidence and cross-check）
 
-- Record landing page through item list. Check read-only session state.
+- ランディングページからアイテムの一覧までを録画する。セッションの状態を読み取り専用で確かめる。
 
-#### Gotchas
+#### 注意点（Gotchas）
 
-- A marketing page is the wrong surface. A missing auth service is a block.
+- マーケティング用のページは、対象とは違う画面である。認証サービスが無いことは、進められない理由になる。
 
-### Item list and detail
+### アイテムの一覧と詳細（Item list and detail）
 
-Lets a user browse items and open one.
+ユーザーがアイテムを一覧で見て、1 つを開けるようにする。
 
-#### How a user gets there
+#### ユーザーがたどり着く方法（How a user gets there）
 
-- Open the `Items` tab, then choose a row.
+- `Items` タブを開き、行を 1 つ選ぶ。
 
-#### How the control adapter drives it
+#### 操作アダプターによる操作（How the control adapter drives it）
 
-- `select_tab Items` and `click <fixture item>` should open its detail.
-- Reset by closing the detail and clearing selection.
+- `select_tab Items` と `click <fixture item>` で、そのアイテムの詳細が開くはずである。
+- 詳細を閉じて選択を解除することで、リセットする。
 
-#### Stable selectors
+#### 安定したセレクター（Stable selectors）
 
-- Tab and list named `Items`, fixture-named row, `data-component="item-detail"`
+- `Items` という名前のタブとリスト、フィクスチャの名前が付いた行、`data-component="item-detail"`
 
-#### States to exercise
+#### 操作する状態（States to exercise）
 
-- Loading, empty, error, selected, open, expanded
+- 読み込み中、空、エラー、選択中、開いている、展開
 
-#### Preconditions and setup
+#### 前提条件と準備（Preconditions and setup）
 
-- Named fixture items, read permission, available item service
+- 名前の付いたフィクスチャのアイテム、読み取り権限、利用できるアイテムのサービス
 
-#### Evidence and cross-check
+#### 証拠と照合（Evidence and cross-check）
 
-- Show selection and matching detail title. Check selected-item ID.
+- 選択と、それに合う詳細のタイトルを写す。選択中のアイテムの ID を確かめる。
 
-#### Gotchas
+#### 注意点（Gotchas）
 
-- Search results may look similar but use a different path.
+- 検索結果は似て見えることがあるが、別の道筋を通る。
 
-### Item editor
+### アイテムのエディター（Item editor）
 
-Lets a user create or edit an item.
+ユーザーがアイテムを作成・編集できるようにする。
 
-#### How a user gets there
+#### ユーザーがたどり着く方法（How a user gets there）
 
-- Choose `Edit` from detail or `New item` from the list.
+- 詳細から `Edit` を選ぶか、一覧から `New item` を選ぶ。
 
-#### How the control adapter drives it
+#### 操作アダプターによる操作（How the control adapter drives it）
 
-- `click Edit`, `fill <field>`, and `click Save` should update detail.
-- Reset by restoring the fixture.
+- `click Edit`、`fill <field>`、`click Save` で、詳細が更新されるはずである。
+- フィクスチャを元に戻すことで、リセットする。
 
-#### Stable selectors
+#### 安定したセレクター（Stable selectors）
 
-- Buttons `Edit`, `New item`, `Save`, form `Item editor`, label-linked fields
+- ボタン `Edit`、`New item`、`Save`、フォーム `Item editor`、ラベルと結びついたフィールド
 
-#### States to exercise
+#### 操作する状態（States to exercise）
 
-- Default, focus-visible, dirty, validating, disabled, saving, error, success
+- 既定、focus-visible、未保存の変更あり、検証中、無効、保存中、エラー、成功
 
-#### Preconditions and setup
+#### 前提条件と準備（Preconditions and setup）
 
-- Editable fixture, write permission, available save service
+- 編集できるフィクスチャ、書き込み権限、利用できる保存のサービス
 
-#### Evidence and cross-check
+#### 証拠と照合（Evidence and cross-check）
 
-- Show field change through updated detail. Check the stored item value read-only.
+- フィールドの変更から、更新された詳細までを写す。保存されたアイテムの値を読み取り専用で確かめる。
 
-#### Gotchas
+#### 注意点（Gotchas）
 
-- Do not inject form state. A read-only detail field is not the editor.
+- フォームの状態を注入しない。読み取り専用の詳細のフィールドは、エディターではない。
 
-### Settings
+### 設定（Settings）
 
-Lets a user change personal preferences.
+ユーザーが個人の設定を変えられるようにする。
 
-#### How a user gets there
+#### ユーザーがたどり着く方法（How a user gets there）
 
-- Open the profile menu, then choose `Settings`.
+- プロフィールのメニューを開き、`Settings` を選ぶ。
 
-#### How the control adapter drives it
+#### 操作アダプターによる操作（How the control adapter drives it）
 
-- `open_menu Profile`, `click Settings`, and `toggle <preference>` should update the control.
-- Reset by restoring the starting preference.
+- `open_menu Profile`、`click Settings`、`toggle <preference>` で、コントロールが更新されるはずである。
+- 設定を最初の値に戻すことで、リセットする。
 
-#### Stable selectors
+#### 安定したセレクター（Stable selectors）
 
-- Button `Profile`, menu item `Settings`, region `Settings`, purpose-named preference attribute
+- ボタン `Profile`、メニュー項目 `Settings`、領域 `Settings`、目的を表す名前の設定項目の属性
 
-#### States to exercise
+#### 操作する状態（States to exercise）
 
-- Closed, open, selected, focus-visible, disabled, loading, error
+- 閉じている、開いている、選択中、focus-visible、無効、読み込み中、エラー
 
-#### Preconditions and setup
+#### 前提条件と準備（Preconditions and setup）
 
-- Signed-in test account, known preferences, available preference service
+- サインイン済みのテスト用アカウント、既知の設定値、利用できる設定のサービス
 
-#### Evidence and cross-check
+#### 証拠と照合（Evidence and cross-check）
 
-- Show the menu path and final control state. Check the preference value read-only.
+- メニューの道筋と、コントロールの最終状態を写す。設定値を読み取り専用で確かめる。
 
-#### Gotchas
+#### 注意点（Gotchas）
 
-- Operating-system settings are a different surface.
+- OS の設定は別の画面である。
 
-## Completeness checklist
+## 完全性のチェックリスト（Completeness checklist）
 
-- Every reproducible user-facing feature has a section.
-- Every section names a user path, adapter actions, and reset.
-- Selectors use roles, names, ARIA, stable component markers, or purpose-named attributes.
-- No selector uses generated classes or DOM position.
-- Relevant interaction, loading, empty, error, selected, and expanded states are covered.
-- Auth, fixtures, permissions, flags, and services are explicit.
-- Screenshot, video, and underlying cross-check requirements are explicit.
-- Wrong surfaces, dead ends, and safe environment translations are listed.
-- Implementation details remain runtime discoveries.
+- 再現しうる、ユーザーから見えるすべての機能に節がある。
+- すべての節が、ユーザーの道筋、アダプターのアクション、リセットを挙げている。
+- セレクターは、ロール、名前、ARIA、安定したコンポーネントのマーカー、目的を表す名前の属性のどれかを使っている。
+- 生成されたクラスや DOM 上の位置を使うセレクターが無い。
+- 関係する操作中の状態、読み込み中、空、エラー、選択中、展開の各状態を扱っている。
+- 認証、フィクスチャ、権限、フラグ、サービスが明示されている。
+- スクリーンショット、動画、裏づけとなる照合の要件が明示されている。
+- 対象と違う画面、行き止まり、安全な環境の読み替えが挙げられている。
+- 実装の詳細は、実行時に調べるものとして残している。

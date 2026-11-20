@@ -1,19 +1,19 @@
 ---
 name: principle-experience-first
-description: "Apply when product, UX, or feature-scope tradeoffs come up. Choose user delight over implementation convenience; ship fewer polished features over more rough ones."
+description: "プロダクト、UX、機能の範囲のトレードオフが生じたときに適用する。実装の都合よりもユーザーの喜びを選び、粗い機能を多く出すより、磨いた機能を少なく出す。"
 disable-model-invocation: true
 ---
 
-# Experience First
+# 体験から始める（Experience First）
 
-When implementation convenience conflicts with user delight, choose delight.
+実装の都合とユーザーの喜びがぶつかるときは、喜びを選ぶ。
 
-- Every feature, control, and option must be justified
-- Ship less, ship better (polished experience with three features beats rough one with ten)
-- Prototype before committing (design decisions are cheaper in throwaway HTML than production code)
-- Get the details right (transitions, alignment, spacing, feedback, error states)
-- Tighten the core loop (every feature should serve the central workflow or get out of the way)
+- すべての機能、コントロール、オプションは、存在する理由を説明できなければならない
+- 出す量を減らし、質を上げる（機能 3 つの磨かれた体験は、機能 10 個の粗い体験に勝る）
+- 決める前にプロトタイプを作る（デザインの決定は、本番のコードより使い捨ての HTML で試すほうが安い）
+- 細部を正しくする（トランジション、揃え、余白、フィードバック、エラー状態）
+- 中心となるループを引き締める（どの機能も、中心のワークフローに役立つか、そうでなければ邪魔にならないようにする）
 
-The user is whoever consumes the work. For a UI that is the end user. For a library or an internal API it is the colleague who imports it. The engineer who maintains the code next is a user too. Weigh their experience the same way, and explain impact from their perspective.
+ユーザーとは、成果を使う人すべてである。UI ならエンドユーザーである。ライブラリや内部 API なら、それを import する同僚である。次にそのコードを保守するエンジニアもユーザーである。その人たちの体験も同じように重視し、影響はその人たちの視点から説明する。
 
-Foundations should serve the experience. Foundational thinking governs the *sequence* of work. This principle governs the *target*.
+基盤は体験のためにある。基礎から考える（Foundational thinking）は作業の*順序*を決める。この原則は*目標*を決める。

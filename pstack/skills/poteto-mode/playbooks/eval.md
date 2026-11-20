@@ -1,25 +1,25 @@
-### Eval
+### 評価（Eval）
 
-**You own the experiment design. Plan, blind, run, synthesize.**
+**実験の設計に責任を持つ。計画し、盲検化し、実行し、統合する。**
 
-**Non-negotiables for blinding:**
+**盲検化の譲れない規則：**
 
-- No `eval`, `test`, `judge`, `experiment`, `rubric`, `score`, `compare`, `benchmark`, `candidate`, or `arena` in any directory, file, or prompt the candidate sees.
-- The candidate prompt looks like an organic user request. State the goal, not the meta.
-- No chain-eliciting cues. Don't ask the candidate to list which skills, principles, or files they applied. Ask for design notes generally and grade chain-following from code shape, not self-report.
-- Sanitize directory and slug names. Use project-shaped names a user might pick.
-- Don't tell the candidate other candidates exist.
-- The judge can know it's judging but sees outputs by sanitized label only, never by model name.
-- Comparing two variants: one judge scores both sets in a single pass on one scale, blind to which set each came from.
+- 候補が目にするディレクトリ、ファイル、プロンプトのどこにも、`eval`、`test`、`judge`、`experiment`、`rubric`、`score`、`compare`、`benchmark`、`candidate`、`arena` を含めない。
+- 候補へのプロンプトは、ユーザーからの自然な依頼に見えるようにする。メタな事情ではなく、目標を書く。
+- 連鎖（chain）を引き出す手がかりを入れない。適用したスキル、原則、ファイルを候補に列挙させない。設計メモは一般的な形で求め、連鎖をたどったかどうかは、自己申告ではなくコードの形から採点する。
+- ディレクトリ名と slug をサニタイズする。ユーザーが付けそうな、プロジェクトらしい名前を使う。
+- ほかの候補がいることを候補に伝えない。
+- ジャッジは自分が判定していると知っていてよいが、出力はサニタイズしたラベルでだけ見せ、モデル名では決して見せない。
+- 2 つのバリアントを比べるときは、1 つのジャッジが両方の組を 1 回で、同じ尺度で採点する。どの出力がどちらの組から来たかは伏せる。
 
-**Steps:**
+**手順：**
 
-1. **Frame.** State what variant is under test and what behavior counts as success. Write the rubric (3-6 concrete criteria) for the judge only. Hold it back from candidates.
-2. **Set up sanitized environments.** Per-candidate working dir with the variant in place. Plant any context an organic task would have: a project skeleton, the skills the candidate would naturally read.
-3. **Author one organic prompt.** What a user would type. No leakage of what's being measured.
-4. **Spawn N parallel candidates** on different models per the **arena** skill's Phase B. Each works in its own sanitized dir. Same prompt to each. Pick each subagent's reasoning level for the job, per the Subagents section. An agent that only dispatches, polls, or packs results runs on `claude-opus-5-5-medium-fast`.
-5. **Spawn one blinded judge** on a different model family per the **arena** skill's Phase C. Judge sees outputs by sanitized label and the rubric, never a model name.
-6. **Verify the chain from transcripts, not self-report.** Read each candidate's local transcript under the active workspace's `agent-transcripts/` directory (the system prompt names this path). Do not glob across `~/.cursor/projects/*/`. That crosses workspace boundaries and reads private chats from unrelated projects. Look at which files each candidate actually opened. Grade chain-following from the files it really read plus the shape of the code, never from the candidate's own claims.
-7. **Read every candidate output yourself** end to end. Compare to the judge's verdict. Disagreement means a model is biased or the rubric is ambiguous. Synthesize.
+1. **枠組みを決める。** どのバリアントを試すのか、どの振る舞いを成功とみなすのかを述べる。評価基準（具体的な項目を 3〜6 個）はジャッジ用にだけ書く。候補には見せない。
+2. **サニタイズした環境を用意する。** 候補ごとに、バリアントを組み込んだ作業ディレクトリを作る。自然なタスクなら備わっているはずの文脈を仕込む。プロジェクトの骨組みや、候補が自然に読むはずのスキルなどである。
+3. **自然なプロンプトを 1 つ書く。** ユーザーが打ちそうな文面にする。何を測っているかを漏らさない。
+4. **N 個の候補を並列に起動する。** **arena** スキルのフェーズ B（Phase B）に従い、それぞれ別のモデルで動かす。各候補は自分のサニタイズしたディレクトリで作業する。全員に同じプロンプトを渡す。各サブエージェントの推論のレベルは、サブエージェント（Subagents）の節に従い、仕事に合わせて選ぶ。振り分け、ポーリング、結果のまとめだけをするエージェントは `claude-opus-5-5-medium-fast` で動かす。
+5. **盲検化したジャッジを 1 つ起動する。** **arena** スキルのフェーズ C（Phase C）に従い、別のモデルファミリーで動かす。ジャッジに見せるのは、サニタイズしたラベル付きの出力と評価基準だけで、モデル名は決して見せない。
+6. **連鎖は、自己申告ではなくトランスクリプトで確かめる。** 各候補のローカルのトランスクリプトを、作業中のワークスペースの `agent-transcripts/` ディレクトリの下で読む（このパスはシステムプロンプトに書かれている）。`~/.cursor/projects/*/` をまたいで glob しない。ワークスペースの境界を越え、無関係なプロジェクトの非公開のチャットまで読んでしまう。各候補が実際に開いたファイルを見る。連鎖をたどったかどうかは、実際に読んだファイルとコードの形から採点し、候補自身の主張からは決して採点しない。
+7. **候補の出力はすべて、最初から最後まで自分で読む。** ジャッジの判定と比べる。食い違いは、モデルに偏りがあるか、評価基準があいまいであることを意味する。統合する。
 
-**Reply:** variant under test, rubric, per-candidate notes, judge's verdict, your synthesis, and a recommendation for whether to promote the variant.
+**返答：** 試したバリアント、評価基準、候補ごとの所見、ジャッジの判定、自分の統合、そのバリアントを採用するかどうかの推奨。

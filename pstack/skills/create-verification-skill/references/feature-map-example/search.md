@@ -1,45 +1,45 @@
-# Search notes
+# ノートを検索する（Search notes）
 
-Search lets a user find notes by title or body text, inspect a matching note, and distinguish no matches from an unavailable search.
+検索では、ユーザーは題名か本文の文字列でノートを探し、一致したノートの中身を確かめ、一致がないことと検索が使えないこととを区別できる。
 
 ## Sub-features
 
-- `search-open` opens search from each supported browser entry point.
-- `search-match` returns title and body matches without changing note data.
-- `search-open-result` opens a result in the note editor.
-- `search-empty` shows a complete empty state for a query with no matches.
-- `search-clear` removes the query and restores the recent-notes view.
-- `search-cli` returns the same matching notes from the terminal.
+- `search-open` は、ブラウザの対応している各入口から検索を開く。
+- `search-match` は、ノートのデータを変えずに、題名と本文の一致を返す。
+- `search-open-result` は、結果をノートのエディターで開く。
+- `search-empty` は、一致のないクエリに対して、検索が完了したうえでの空の状態を表示する。
+- `search-clear` は、クエリを消して、最近のノートの表示に戻す。
+- `search-cli` は、同じ一致したノートをターミナルから返す。
 
 ## How to get to it (user POV)
 
-- Choose the `Search` button in the browser toolbar.
-- Press `/` in the browser while focus is outside an editable field.
-- Run `notes search <query>` in a terminal.
+- ブラウザのツールバーで `Search` ボタンを選ぶ。
+- ブラウザで、フォーカスが編集可能な欄の外にあるときに `/` を押す。
+- ターミナルで `notes search <query>` を実行する。
 
 ## Driving it with control-notes
 
 Preconditions:
 
-- Notes is healthy at `http://127.0.0.1:4173`.
-- The disposable data directory contains `Quarterly plan` with body text `Draft budget`.
-- `control-notes doctor` reports the expected URL and data directory.
+- Notes が `http://127.0.0.1:4173` で正常に動いている。
+- 使い捨てのデータディレクトリに、本文が `Draft budget` の `Quarterly plan` がある。
+- `control-notes doctor` が、期待どおりの URL とデータディレクトリを報告する。
 
-- **Toolbar entry.** Choose the `Search` button. Run `control-notes browser click --role button --name "Search"`. A dialog named `Search notes` appears with focus in its searchbox.
-- **Keyboard entry.** Close the dialog, focus the page, and press `/`. Run `control-notes browser press --key "/"`. The same dialog appears and the page does not insert a slash.
-- **Title match.** Type `quarterly`. Run `control-notes browser fill --role searchbox --name "Search notes" --value "quarterly"`. The `Search results` list contains `Quarterly plan` and does not contain `Grocery list`.
-- **Body match.** Replace the query with `budget`. Run `control-notes browser fill --role searchbox --name "Search notes" --value "budget"`. The result `Quarterly plan` remains visible with a body-match excerpt.
-- **Open result.** Choose `Quarterly plan`. Run `control-notes browser click --role link --name "Quarterly plan"`. The dialog closes and the editor heading reads `Quarterly plan`.
-- **Empty state.** Reopen search and enter `volcano`. Run `control-notes browser fill --role searchbox --name "Search notes" --value "volcano"`. A status named `No matching notes` appears after search completes.
-- **Clear query.** Choose `Clear search`. Run `control-notes browser click --role button --name "Clear search"`. The searchbox is empty and the `Recent notes` region replaces the result list.
-- **CLI match.** Search from the terminal. Run `control-notes cli -- notes search "quarterly" --format json`. Exit code `0` and stdout contain one object whose title is `Quarterly plan`.
-- **CLI miss.** Search for an absent value. Run `control-notes cli -- notes search "volcano" --format json`. Exit code `0` and stdout are `[]`.
-- **Proof.** Capture the populated result state. Run `control-notes browser snapshot --aria --path artifacts/search/results.aria.txt` and `control-notes browser screenshot --path artifacts/search/results.png`. Both artifacts identify Notes, the query, and `Quarterly plan`.
+- **ツールバーの入口。** `Search` ボタンを選ぶ。`control-notes browser click --role button --name "Search"` を実行する。`Search notes` という名前のダイアログが現れ、その検索ボックスにフォーカスがある。
+- **キーボードの入口。** ダイアログを閉じ、ページにフォーカスを移して `/` を押す。`control-notes browser press --key "/"` を実行する。同じダイアログが現れ、ページにスラッシュは入力されない。
+- **題名の一致。** `quarterly` と入力する。`control-notes browser fill --role searchbox --name "Search notes" --value "quarterly"` を実行する。`Search results` の一覧に `Quarterly plan` があり、`Grocery list` はない。
+- **本文の一致。** クエリを `budget` に置き換える。`control-notes browser fill --role searchbox --name "Search notes" --value "budget"` を実行する。結果の `Quarterly plan` が、本文の一致箇所の抜粋とともに表示されたままになる。
+- **結果を開く。** `Quarterly plan` を選ぶ。`control-notes browser click --role link --name "Quarterly plan"` を実行する。ダイアログが閉じ、エディターの見出しが `Quarterly plan` になる。
+- **空の状態。** 検索を開き直し、`volcano` と入力する。`control-notes browser fill --role searchbox --name "Search notes" --value "volcano"` を実行する。検索が終わったあとに、`No matching notes` という名前のステータスが現れる。
+- **クエリをクリアする。** `Clear search` を選ぶ。`control-notes browser click --role button --name "Clear search"` を実行する。検索ボックスが空になり、結果の一覧の代わりに `Recent notes` の領域が表示される。
+- **CLI での一致。** ターミナルから検索する。`control-notes cli -- notes search "quarterly" --format json` を実行する。終了コードが `0` で、stdout に、題名が `Quarterly plan` のオブジェクトが 1 つ含まれる。
+- **CLI での不一致。** 存在しない値を検索する。`control-notes cli -- notes search "volcano" --format json` を実行する。終了コードが `0` で、stdout は `[]` である。
+- **証明。** 結果が表示された状態を記録する。`control-notes browser snapshot --aria --path artifacts/search/results.aria.txt` と `control-notes browser screenshot --path artifacts/search/results.png` を実行する。どちらの成果物からも、Notes、クエリ、`Quarterly plan` がわかる。
 
 ## Gotchas
 
-- Pressing `/` while the editor or searchbox has focus inserts text instead of opening search.
-- Results update after a short debounce. Wait for the results list or empty status, not a fixed sleep.
-- Archived notes are excluded unless the user enables `Include archived`.
-- The CLI defaults to human-readable output. Use `--format json` for stable assertions.
-- Opening a result changes browser state. Reopen search before proving another query.
+- エディターか検索ボックスにフォーカスがあるときに `/` を押すと、検索は開かず、文字が入力される。
+- 結果は、短いデバウンスのあとに更新される。決まった時間の sleep ではなく、結果の一覧か空のステータスが現れるのを待つ。
+- ユーザーが `Include archived` を有効にしない限り、アーカイブ済みのノートは除かれる。
+- CLI の出力は、既定では人間向けの形式である。安定した検証には `--format json` を使う。
+- 結果を開くと、ブラウザの状態が変わる。別のクエリを証明する前に、検索を開き直す。

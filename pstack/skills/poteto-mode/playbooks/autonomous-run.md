@@ -1,13 +1,13 @@
-### Autonomous run
+### 自律実行（Autonomous run）
 
-**You own the exit condition. Define done, then drive to it without stopping.**
+**終了条件は自分の責任である。完了を定義し、止まらずにそこまで進める。**
 
-1. State the exit condition as a checkable predicate before the first iteration (tests green, repro fixed, all N PRs merged, pixel-diff zero).
-2. Pick the wake mechanism using Cursor's `/loop` command (a built-in, not a pstack skill). An event to watch (CI, a merge, a ref advancing) gets a watcher subagent that wakes you on the event, with a long time-based heartbeat as fallback. No event gets a fixed-interval heartbeat sized to when the result is worth re-checking. Pick each subagent's reasoning level for the job, per the Subagents section.
-3. Each iteration makes the smallest change the evidence justifies, verifies it against the predicate, commits if it advanced, discards changes that didn't help. Belt-and-suspenders that "might help" gets reverted, not left to ride.
-   Sequence the work via the **sequence-verifiable-units** principle skill, verifying each unit before the next instead of batching checks at the end.
-4. Mid-run discoveries that support the goal are yours. Address broken skills, related bugs, flaky verifiers, review noise, tooling failures, orphaned follow-ups, and fixable drift yourself via poteto-mode. Put out-of-band fixes in their own PR. Do not park reversible work for the human or use `AskQuestion`. Surface only irreversible actions, genuine product or preference calls no experiment can settle, or a real dead end. Keep the predicate as the main drive, and return to it after each side fix.
-5. Checkpoint every iteration via the **show-me-your-work** skill, a row for what changed and whether the predicate moved.
-6. Stop when the predicate is met. A plateau is not a stop, so keep going and pivot your approach to push past it. Surface a genuine dead end rather than spinning, and never relax the predicate to declare victory.
+1. 最初の反復の前に、終了条件を確認できる判定条件として書く（テストが通る、再現していた問題が直る、N 個の PR がすべてマージされる、ピクセルの差分がゼロ）。
+2. Cursor の `/loop` コマンド（pstack のスキルではなく、組み込みのもの）を使って、起こす仕組みを選ぶ。見守るイベント（CI、マージ、ref の前進）があるなら、そのイベントで自分を起こす watcher のサブエージェントを置き、予備として長い間隔の時間ベースのハートビートを付ける。イベントがなければ、結果を確かめ直す価値が出るころに合わせた一定間隔のハートビートを使う。サブエージェントの推論のレベルは、サブエージェント（Subagents）の節に従って仕事ごとに選ぶ。
+3. 各反復では、証拠が正当化する最小の変更を加え、それを判定条件に照らして検証し、前進したらコミットし、役に立たなかった変更は捨てる。「役立つかもしれない」念のための保険は、放置せずに取り消す。
+   **sequence-verifiable-units** 原則スキルに従って作業の順序を決め、確認を最後にまとめるのではなく、次の単位に進む前に各単位を検証する。
+4. 実行の途中で見つけた、目標に役立つものは自分で引き受ける。壊れたスキル、関連するバグ、不安定な検証役、レビューのノイズ、ツールの失敗、放置された後続の作業、直せるずれは、poteto-mode を通じて自分で対処する。本筋から外れた修正は、別の PR にする。やり直せる作業を人間のために保留したり、`AskQuestion` を使ったりしない。報告するのは、取り消せない操作、実験では決着しない本物のプロダクトや好みの判断、本当の行き詰まりだけにする。判定条件を主な目標として保ち、脇道の修正のたびにそこへ戻る。
+5. **show-me-your-work** スキルで反復ごとにチェックポイントを残し、何が変わったか、判定条件が動いたかを 1 行に書く。
+6. 判定条件を満たしたら止まる。停滞は止まる理由にならないので、続けて、やり方を変えて乗り越える。空回りせずに本当の行き詰まりを報告し、成功を宣言するために判定条件を緩めることは決してしない。
 
-**Reply:** the exit condition, iterations run, what landed, what was discarded, final predicate state.
+**返答。** 終了条件、実行した反復の数、マージしたもの、捨てたもの、判定条件の最終的な状態。

@@ -1,70 +1,70 @@
-# benny automation intent
+# benny の Automation の意図（benny automation intent）
 
-## what i want to automate
+## 自動化したいこと（what i want to automate）
 
-i want two cursor automations that work together in one slack issue channel.
+1 つの Slack の issue チャンネルで連携して動く、2 つの Cursor Automation がほしい。
 
-### automation 1: triage issue reports
+### Automation 1: issue の報告のトリアージ（automation 1: triage issue reports）
 
-- trigger: when someone posts a new top-level report in my configured source slack channel, i want this automation to start on that report and keep its original thread coordinates.
-- behavior: i want it to read the thread and attachments, classify the report as a bug or performance issue, feature request, question or feedback, or reroute, and trace the likely owning layer before routing.
-- tracker: i want it to search my configured tracker for duplicates, update a confident duplicate, and create a ticket only for a clear net-new bug.
-- tools: i want slack thread read and reply access, my configured tracker integration, and my optional routing map.
-- outcome: i want exactly one reply in the source thread with a short verdict and `[benny:bug]`, `[benny:performance]`, or `[benny:other]`. a bug or performance marker may include the tracker url.
-- boundary: i never want this automation to post a root message in the source channel.
+- トリガー: 設定した報告元の Slack チャンネルに、誰かがトップレベルの新しい報告を投稿したら、この Automation にはその報告から始まり、元のスレッドの位置（coordinates）を保持してほしい。
+- 振る舞い: スレッドと添付ファイルを読み、報告を、バグまたはパフォーマンスの問題、機能要望、質問・フィードバック、振り分け直しのいずれかに分類し、振り分ける前に、問題を担当していそうなレイヤーを辿ってほしい。
+- トラッカー: 設定したトラッカーで重複を探し、確実な重複なら既存のチケットを更新し、新規であることが明らかなバグに限ってチケットを作ってほしい。
+- ツール: Slack のスレッドの読み取りと返信の権限、設定したトラッカーの連携、任意の振り分けマップを使えるようにしたい。
+- 結果: 報告元のスレッドに、短い判定と `[benny:bug]`、`[benny:performance]`、`[benny:other]` のいずれかを付けた返信を、ちょうど 1 件だけ投稿してほしい。bug と performance のマーカーには、トラッカーの URL を含めてよい。
+- 境界: この Automation には、報告元のチャンネルに決してルートメッセージを投稿してほしくない。
 
-### automation 2: reproduce and fix confirmed bugs
+### Automation 2: 確認されたバグの再現と修正（automation 2: reproduce and fix confirmed bugs）
 
-- trigger: i want this automation to start from the same new top-level report, or another supported trigger chosen during setup, then wait for the trusted triage marker in the original thread.
-- gates: i want it to stop when someone clearly owns the fix. if an existing pull request or merged commit may fix the report, i want verification instead of a competing change.
-- behavior: i want it to use my configured control adapter and feature map, reproduce the exact symptom twice through the real ui, and capture screenshots, video, and a read-only state cross-check.
-- fix: i want it to verify existing pull requests without authoring over them. after a confirmed repro, it may attempt one bounded root-cause fix, use tdd when the test is cheap, smoke the blast radius, and open a draft pull request only when before-and-after proof passes.
-- tools: i want slack thread read and reply access, repository and history access, draft pull request creation, my configured tracker, and my control adapter.
-- outcome: i want evidence and a verified result in the source or optional operations threads, plus an optional draft pull request. updates should be concise.
-- boundary: i never want this automation to post a root message in the source channel.
+- トリガー: この Automation には、同じトップレベルの新しい報告か、セットアップで選んだサポートされている別のトリガーから始まり、元のスレッドで信頼できるトリアージのマーカーを待ってほしい。
+- ゲート: 誰かが明らかに修正を引き受けているときは止まってほしい。既存のプルリクエストやマージ済みのコミットで報告の問題が直る可能性があるなら、競合する変更を作るのではなく、それを検証してほしい。
+- 振る舞い: 設定した操作アダプター（control adapter）と機能マップを使い、報告どおりの症状を実際の UI で 2 回再現し、スクリーンショット、動画、読み取りだけで行う状態の照合を記録してほしい。
+- 修正: 既存のプルリクエストは、その上に自分の変更を書かずに検証してほしい。再現が確認できたら、範囲を限った根本原因の修正を 1 回試み、テストが安く書けるなら TDD を使い、影響範囲をスモークテストし、修正前と修正後の証明が通ったときに限ってドラフトのプルリクエストを開いてよい。
+- ツール: Slack のスレッドの読み取りと返信の権限、リポジトリとその履歴へのアクセス、ドラフトのプルリクエストの作成、設定したトラッカー、操作アダプターを使えるようにしたい。
+- 結果: 報告元のスレッドか、任意の運用チャンネルのスレッドに、証拠と検証済みの結果を投稿し、任意でドラフトのプルリクエストも出してほしい。途中経過の投稿は簡潔にしてほしい。
+- 境界: この Automation には、報告元のチャンネルに決してルートメッセージを投稿してほしくない。
 
-### shared rules
+### 共通の規則（shared rules）
 
-- i want the source channel and root thread coordinates to stay immutable for the whole run.
-- i treat utility and debug bots as evidence, not delegation or fix ownership.
-- i allow subagents to help, but they cannot post to slack or receive slack credentials.
-- i want this entire pack committed at `.cursor/automations/benny/` in the target repository. its `SKILL.md` files are direct automation instructions, not registered plugin skills.
-- i want pstack enabled through the target repository's committed `.cursor/settings.json` only for shared dependencies such as `why`, `tdd`, `unslop`, and the required principle skills.
-- i want each live automation prompt to read its committed operational file directly. i do not want plugin cache paths, copied excerpts, or slash-skill discovery.
-- i keep user-owned configuration, feature maps, routing maps, and secrets outside `.cursor/automations/benny/` so pack refreshes cannot overwrite them.
-- i want both automations to fail closed when channel coordinates, tracker access, the control adapter, or the feature map are missing or uncertain.
-- i want draft pull requests only. do not merge or deploy.
+- 報告元のチャンネルとルートスレッドの位置は、実行の最初から最後まで変えないでほしい。
+- ユーティリティやデバッグ用のボットは証拠として扱い、委任や修正の引き受けとは見なさない。
+- サブエージェントに手伝わせてよいが、サブエージェントは Slack に投稿できず、Slack の認証情報も受け取れない。
+- このパック全体を、対象リポジトリの `.cursor/automations/benny/` にコミットしてほしい。パックの `SKILL.md` ファイルは Automation が直接読む指示であり、プラグインに登録されたスキルではない。
+- `why`、`tdd`、`unslop` や必要な原則のスキルといった共有の依存先のためだけに、対象リポジトリにコミットした `.cursor/settings.json` で pstack を有効にしてほしい。
+- 実際に動く各 Automation のプロンプトには、コミット済みの手順ファイルを直接読ませたい。プラグインのキャッシュのパス、コピーした抜粋、スラッシュスキルの探索は使いたくない。
+- ユーザーが管理する設定、機能マップ、振り分けマップ、秘密情報は、パックの更新で上書きされないように `.cursor/automations/benny/` の外に置く。
+- チャンネルの位置、トラッカーへのアクセス、操作アダプター、機能マップのいずれかが欠けているか不確かなときは、どちらの Automation も安全側に倒して止まってほしい（fail closed）。
+- プルリクエストはドラフトだけにしてほしい。マージもデプロイもしない。
 
-### my configuration
+### 自分の設定（my configuration）
 
-- source slack channel: `<channel>`
-- optional operations channel: `<channel or none>`
-- repository and default branch: `<repo>`, `<branch>`
-- tracker: `<type, team, project, labels, intake status>`
-- routing map: `<path or none>`
-- triage identity: `<slack identity>`
-- control skill: `<configured skill or adapter>`
-- feature map: `<committed same-repo path outside the copied pack, or behavior to paraphrase>`
-- models: `<triage, reproduce, code, media review>`
-- status emoji strings: `<seen, reproducing, reproduced, blocked, fixing, failed, pull request opened>`
-- budgets: `<polling, verdict wait, follow-up, repro, rejection, fix>`
-- optional bot token capability: `<none, file download, or editable operations status>`
+- 報告元の Slack チャンネル: `<channel>`
+- 任意の運用チャンネル: `<channel or none>`
+- リポジトリと既定ブランチ: `<repo>`、`<branch>`
+- トラッカー: `<type, team, project, labels, intake status>`
+- 振り分けマップ: `<path or none>`
+- トリアージのアカウント: `<slack identity>`
+- 操作スキル: `<configured skill or adapter>`
+- 機能マップ: `<committed same-repo path outside the copied pack, or behavior to paraphrase>`
+- モデル: `<triage, reproduce, code, media review>`
+- 状態を示す絵文字の文字列: `<seen, reproducing, reproduced, blocked, fixing, failed, pull request opened>`
+- 予算: `<polling, verdict wait, follow-up, repro, rejection, fix>`
+- 任意のボットトークンでできること: `<none, file download, or editable operations status>`
 
-start from [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md). copy and fill them outside this pack, for example under `.cursor/benny/`. keep secret values in a secret manager or environment.
+[`configuration.example.yaml`](./templates/configuration.example.yaml) と [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md) から始める。これらは、このパックの外（たとえば `.cursor/benny/` の下）にコピーしてから埋める。秘密の値は、シークレットマネージャーか環境変数に置く。
 
-## for the agent
+## エージェント向け（for the agent）
 
-the human enters setup by pointing cursor at this file. do not look for or invoke a discovered benny slash skill.
+人間は、Cursor にこのファイルを渡してセットアップを始める。benny のスラッシュスキルを探したり、見つかったものを呼び出したりしない。
 
-1. ask which repository will run the automations.
-2. treat the directory containing this `FOR_AGENTS.md` as the source pack.
-3. merge the entire source pack into `<target-repository>/.cursor/automations/benny/`.
-4. preserve every destination-only file. never delete unrelated files or overwrite user-owned configuration, feature maps, or routing maps.
-5. when an existing destination file at a source-managed path differs, review the diff and merge without discarding local edits. if ownership is ambiguous, stop and ask before replacing it.
-6. verify that the copied `FOR_AGENTS.md` and `skills/setup-benny/SKILL.md` exist in the target repository.
-7. read and follow `.cursor/automations/benny/skills/setup-benny/SKILL.md` directly from the target repository.
+1. Automation を動かすリポジトリはどれかを尋ねる。
+2. この `FOR_AGENTS.md` を含むディレクトリを、コピー元のパックとして扱う。
+3. コピー元のパック全体を `<target-repository>/.cursor/automations/benny/` にマージする。
+4. コピー先にだけあるファイルはすべて残す。関係のないファイルを決して削除せず、ユーザーが管理する設定、機能マップ、振り分けマップを決して上書きしない。
+5. パックが管理するパスにあるコピー先の既存ファイルが異なるときは、差分を確認し、ローカルの編集を捨てずにマージする。誰が管理するファイルかがはっきりしないときは、置き換える前に止まって尋ねる。
+6. コピーした `FOR_AGENTS.md` と `skills/setup-benny/SKILL.md` が対象リポジトリにあることを確かめる。
+7. 対象リポジトリの `.cursor/automations/benny/skills/setup-benny/SKILL.md` を直接読み、それに従う。
 
-i want you to merge this entry into the target repository's `.cursor/settings.json`:
+対象リポジトリの `.cursor/settings.json` に、次のエントリーをマージしてほしい。
 
 ```json
 {
@@ -74,16 +74,16 @@ i want you to merge this entry into the target repository's `.cursor/settings.js
 }
 ```
 
-preserve every unrelated setting and plugin. preserve comments and valid jsonc syntax when the existing file uses jsonc.
+関係のない設定とプラグインはすべて残す。既存のファイルが JSONC なら、コメントと JSONC として正しい構文を保つ。
 
-i want verification from a fresh agent rooted in the target repository. confirm that pstack's `why`, `tdd`, `unslop`, and the principle skills used by benny resolve in project scope. do not count skills loaded from the current session or a user-scoped install.
+検証は、対象リポジトリをルートにした新しいエージェントで行ってほしい。pstack の `why`、`tdd`、`unslop` と、benny が使う原則のスキルが、プロジェクトスコープで解決されることを確かめる。現在のセッションや、ユーザースコープでインストールしたものから読み込まれたスキルは数えない。
 
-if project-scoped plugins are unavailable or any shared dependency does not resolve, stop and explain what failed. do not add `.cursor/automations/benny/skills/` to a plugin manifest or expect its files to appear in the slash-skill list.
+プロジェクトスコープのプラグインが使えないか、共有の依存先のどれかが解決されないときは、止まって、何が失敗したかを説明する。`.cursor/automations/benny/skills/` をプラグインのマニフェストに追加したり、そのファイルがスラッシュスキルの一覧に現れると期待したりしない。
 
-tell me that `.cursor/settings.json`, `.cursor/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. do not create or update an automation until i explicitly ask.
+どちらかの Automation を有効にする前に、`.cursor/settings.json`、`.cursor/automations/benny/`、参照している秘密情報を含まない設定をコミットしなければならないことを、私に伝える。私がはっきり頼むまで、Automation を作ったり更新したりしない。
 
-for first-time creation, use built-in `/automate` once for triage and once for repro and fix. complete the draft review, approval, readiness check, and Automations editor handoff for the first automation before starting the second.
+初めて作るときは、組み込みの `/automate` を、トリアージ用に 1 回、再現と修正用に 1 回使う。1 つ目の Automation について、下書きのレビュー、承認、準備状況の確認、Automations エディターへの引き継ぎを終えてから、2 つ目に取りかかる。
 
-paraphrase this intent and the finished configuration into each draft. the triage prompt must read and follow `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md`. the repro prompt must read and follow `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`. use these repo-relative paths only after `/automate` confirms they are committed in the repository where the automation will run.
+この意図と完成した設定を、言い換えてそれぞれの下書きに書き込む。トリアージのプロンプトでは、必ず `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md` を読んで従わせる。再現のプロンプトでは、必ず `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` を読んで従わせる。これらのリポジトリ相対パスを使うのは、Automation を動かすリポジトリにそのファイルがコミットされていることを `/automate` が確かめてからにする。
 
-for existing automations, do not use `/automate` to inspect or update them. validate the configuration, then use the concise field checklist in the copied setup file so i can edit each automation directly in its editor. do not create duplicates.
+既存の Automation については、`/automate` で中身を確かめたり更新したりしない。設定を検証してから、コピーしたセットアップのファイルにある、項目の簡潔なチェックリストを使い、私が各 Automation をそれぞれのエディターで直接編集できるようにする。重複を作らない。

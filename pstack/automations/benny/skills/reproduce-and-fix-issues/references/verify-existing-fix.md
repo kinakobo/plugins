@@ -1,93 +1,93 @@
-# Verify an existing fix
+# 既存の修正を検証する（Verify an existing fix）
 
-Use this mode when an open pull request or merged commit plausibly fixes the report.
+このモードは、オープンなプルリクエストかマージ済みのコミットが、報告を直していると考えられるときに使う。
 
-The existing artifact owns the fix. Verify it. Do not edit it, author a competing patch, or open another pull request.
+修正の担当は既存の成果物である。それを検証する。編集したり、競合するパッチを書いたり、別のプルリクエストを開いたりしない。
 
-## Qualify the artifact
+## 成果物の条件を確かめる（Qualify the artifact）
 
-Require one concrete artifact:
+具体的な成果物を 1 つ必須とする。
 
-- An open pull request with code changes that address the symptom
-- A merged pull request
-- A merged commit with matching code and intent
+- 症状に対処するコードの変更を含む、オープンなプルリクエスト
+- マージ済みのプルリクエスト
+- コードと意図が合致する、マージ済みのコミット
 
-A thread claim, tracker status, branch name, or cause hypothesis without a pull request or commit is not enough.
+スレッドでの主張、トラッカーのステータス、ブランチ名、原因の仮説は、プルリクエストもコミットも伴わなければ十分ではない。
 
-When several artifacts exist, choose the one linked from the source thread or tracker. Otherwise choose the closest match to the affected code and state why.
+成果物が複数あるときは、報告元のスレッドかトラッカーからリンクされているものを選ぶ。そうでなければ、影響を受けるコードに最も近いものを選び、その理由を述べる。
 
-## Protect the working tree
+## 作業ツリーを守る（Protect the working tree）
 
-Use an isolated worktree or another clean checkout when the repository supports it. Do not overwrite user changes.
+リポジトリが対応していれば、隔離した worktree か、別のクリーンなチェックアウトを使う。ユーザーの変更を上書きしない。
 
-Record:
+次を記録する。
 
-- Baseline revision
-- Patched revision
-- Pull request or commit URL
-- Build and environment inputs shared by both runs
+- ベースラインのリビジョン
+- 修正版のリビジョン
+- プルリクエストかコミットの URL
+- 両方の実行で共通に使う、ビルドと環境の入力
 
-Use regular `github.com` pull request links.
+プルリクエストのリンクは、通常の `github.com` のものを使う。
 
-## Measure the baseline
+## ベースラインを測る（Measure the baseline）
 
-For an open pull request, use its base branch as the baseline.
+オープンなプルリクエストなら、そのベースブランチをベースラインにする。
 
-For a merged fix, use the revision immediately before the fix when that revision builds and represents the old behavior.
+マージ済みの修正なら、修正の直前のリビジョンがビルドでき、古い振る舞いを表しているときに、そのリビジョンを使う。
 
-Through the configured control adapter:
+設定された操作アダプター（control adapter）を通して、次を行う。
 
-1. Bring up the baseline app.
-2. Confirm the correct app and environment.
-3. Run the reported path through real UI actions.
-4. Observe the discriminating symptom.
-5. Reset and repeat it.
-6. Capture baseline recording, screenshot, and state check.
+1. ベースラインのアプリを立ち上げる。
+2. アプリと環境が正しいことを確かめる。
+3. 報告された道筋を、実際の UI 操作でたどる。
+4. 判別できる症状を観察する。
+5. リセットして、もう一度繰り返す。
+6. ベースラインの録画、スクリーンショット、状態の確認をキャプチャする。
 
-If the symptom does not appear twice on the baseline, there is no baseline. Do not claim that the fix works.
+ベースラインで症状が 2 回現れなければ、ベースラインは無い。修正で直ったとは言わない。
 
-## Measure the patched build
+## 修正版のビルドを測る（Measure the patched build）
 
-Build and run the pull request or fix commit with the same environment and data.
+プルリクエストか修正のコミットを、同じ環境とデータでビルドして動かす。
 
-1. Run the same UI path.
-2. Repeat it twice.
-3. Confirm that the broken state is gone.
-4. Confirm the expected state appears.
-5. Capture after recording, screenshot, and the same state check.
+1. 同じ UI の道筋をたどる。
+2. それを 2 回繰り返す。
+3. 壊れた状態が無くなったことを確かめる。
+4. 期待される状態が現れることを確かめる。
+5. 修正後の録画、スクリーンショット、同じ状態の確認をキャプチャする。
 
-Do not stop at compilation or tests. The after result must come from a running patched app.
+コンパイルやテストで止めない。修正後の結果は、動いている修正版のアプリから得なければならない。
 
-## Outcomes
+## 結果（Outcomes）
 
-### Confirmed
+### 確定（Confirmed）
 
-The baseline reproduces twice and the patched build resolves it twice.
+ベースラインで 2 回再現し、修正版のビルドで 2 回とも解消している。
 
-- Mark operations status as verified.
-- Link the artifact.
-- Post one concise source-thread reply after the source preflight.
-- Include the before and after result.
-- Open no pull request.
+- 運用ステータスを verified（検証済み）にする。
+- 成果物のリンクを付ける。
+- 報告元の事前確認のあと、報告元のスレッドに簡潔な返信を 1 件投稿する。
+- 修正前と修正後の結果を含める。
+- プルリクエストは開かない。
 
-### Insufficient fix
+### 修正が不十分（Insufficient fix）
 
-The symptom appears on both baseline and patched builds.
+ベースラインと修正版の両方のビルドで症状が現れる。
 
-- Mark operations status as reproduced but not fixed.
-- Link the artifact and say it did not resolve the symptom.
-- Post the normal confirmed-repro source update if the run has not already used it.
-- Open no competing pull request.
+- 運用ステータスを reproduced but not fixed（再現したが直っていない）にする。
+- 成果物のリンクを付け、それで症状が解消しなかったと述べる。
+- 実行がまだ使っていなければ、再現が確定したときの通常の更新を報告元に投稿する。
+- 競合するプルリクエストは開かない。
 
-### Inconclusive
+### 結論が出ない（Inconclusive）
 
-The baseline does not reproduce, the patched app cannot run, or the evidence does not show the discriminating state.
+ベースラインで再現しない、修正版のアプリが動かない、あるいは証拠に判別できる状態が写っていない。
 
-- Do not claim success.
-- State which half could not be measured.
-- Keep the result in the operations thread or run output.
-- Post nothing in the source thread unless a direct question requires an answer.
+- 成功したとは言わない。
+- どちらの側を測れなかったかを述べる。
+- 結果は運用スレッドか実行の出力に残す。
+- 直接の質問に答える必要がない限り、報告元のスレッドには何も投稿しない。
 
-## Cleanup
+## 片付け（Cleanup）
 
-Stop both builds, remove temporary profiles and captures according to retention policy, and return the repository to its prior state without discarding user work.
+両方のビルドを止め、一時的なプロファイルとキャプチャを保持ポリシーに従って削除し、ユーザーの作業を捨てずにリポジトリを元の状態に戻す。

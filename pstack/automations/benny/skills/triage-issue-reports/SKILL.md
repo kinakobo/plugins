@@ -1,217 +1,217 @@
 ---
 name: triage-issue-reports
-description: Triage Slack issue reports with one thread-only verdict, evidence review, cause-aware routing, tracker dedupe, and fail-closed ticket creation. Use only from the configured Benny triage automation.
+description: Slack の issue の報告をトリアージする。スレッドの中だけに投稿する 1 件の判定、証拠の確認、原因を踏まえた振り分け、トラッカーでの重複の確認、安全側に倒したチケット作成（fail closed）を行う。設定済みの Benny のトリアージの Automation からだけ使う。
 disable-model-invocation: true
 ---
 
-# Triage issue reports
+# issue の報告をトリアージする（Triage issue reports）
 
-Classify one Slack report and post one useful verdict in its source thread. Create a tracker issue only for a clear, new bug. Do not reproduce or fix it here.
+Slack の報告を 1 件分類し、役に立つ判定を 1 件、その報告元のスレッドに投稿する。トラッカーの issue を作るのは、明らかに新しいバグのときだけにする。ここでは再現も修正もしない。
 
-Load the external Benny configuration supplied by the automation. If the config is missing, malformed, or incomplete, stop without posting or writing to the tracker.
+Automation が渡す、外部の Benny の設定を読み込む。設定がない、形式が壊れている、または不完全なときは、投稿もトラッカーへの書き込みもせずに止まる。
 
-## Hard safety rules
+## 厳守する安全規則（Hard safety rules）
 
-- The source channel and root thread coordinates are immutable.
-- Never post a root message in the source channel.
-- Never post to another channel, broadcast a reply, send a DM, or start a replacement thread.
-- Preflight the source parent before any tracker write and immediately before the verdict post.
-- If the parent is missing, deleted, inaccessible, or uncertain, stop with no writes.
-- Post one substantive verdict. Do not narrate progress.
-- The coordinator is the only Slack poster.
-- Delegated workers return findings only. They must be read-only and receive no Slack credentials or write actions.
-- Every child prompt must forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and every other Slack write.
-- If worker isolation cannot enforce those limits, do the work in the coordinator.
-- Never create an issue that cannot link back to the source thread.
-- Prefer no ticket over a guessed or duplicate ticket.
-- Apply pstack's `principle-separate-before-serializing-shared-state` to source coordinates.
-- Apply pstack's `principle-minimize-reader-load` and `unslop` skills to the final verdict.
+- 報告元のチャンネルとルートスレッドの位置（coordinates）は変えない。
+- 報告元のチャンネルに決してルートメッセージを投稿しない。
+- ほかのチャンネルへの投稿、返信のチャンネルへの同時送信、DM の送信、代わりのスレッドの開始を決してしない。
+- トラッカーに書き込む前と、判定を投稿する直前には、報告元の親メッセージを事前確認（preflight）する。
+- 親メッセージがない、削除されている、アクセスできない、または確かでないときは、何も書き込まずに止まる。
+- 中身のある判定を 1 件だけ投稿する。途中経過を逐一投稿しない。
+- Slack に投稿するのはコーディネーターだけである。
+- 委任先のワーカーは、調べた結果だけを返す。ワーカーは必ず読み取り専用とし、Slack の認証情報も書き込み操作も渡さない。
+- 子エージェントへのプロンプトでは、必ず `SendSlackMessage`、`PostToSlack`、`chat.postMessage` をはじめ、Slack へのあらゆる書き込みを禁じる。
+- ワーカーの隔離でこれらの制限を強制できないなら、その作業はコーディネーターが行う。
+- 報告元のスレッドへのリンクを張れない issue は決して作らない。
+- 推測で作るチケットや重複したチケットよりも、チケットを作らないほうを選ぶ。
+- 報告元の位置には、pstack の `principle-separate-before-serializing-shared-state`（共有状態は直列化する前に分離する）を適用する。
+- 最終的な判定には、pstack の `principle-minimize-reader-load`（読み手の負荷を最小にする）と `unslop` のスキルを適用する。
 
-## 1. Freeze source coordinates
+## 1. 報告元の位置を固定する（Freeze source coordinates）
 
-Before making a work list or delegating:
+作業リストを作ったり委任したりする前に、次を行う。
 
-1. Read `source_channel_id` from the trigger.
-2. Require it to equal the configured source channel.
-3. Set `SOURCE_THREAD_TS` to `trigger.thread_ts` when present. Otherwise use `trigger.ts`.
-4. Require a nonempty `SOURCE_THREAD_TS`.
-5. Store `SOURCE_CHANNEL_ID` and `SOURCE_THREAD_TS` as immutable values.
-6. Read the thread and verify that its root has exactly those coordinates.
-7. Fetch a stable source permalink.
+1. トリガーから `source_channel_id` を読む。
+2. それが、設定した報告元のチャンネルと一致することを必須にする。
+3. `trigger.thread_ts` があれば、それを `SOURCE_THREAD_TS` にする。なければ `trigger.ts` を使う。
+4. `SOURCE_THREAD_TS` が空でないことを必須にする。
+5. `SOURCE_CHANNEL_ID` と `SOURCE_THREAD_TS` を、変更しない値として保存する。
+6. スレッドを読み、そのルートがまさにその位置にあることを確かめる。
+7. 報告元の、変わらないパーマリンクを取得する。
 
-Every later source read and post must use those stored values. Never replace them with a reply timestamp or an operations-thread timestamp.
+以後の報告元の読み取りと投稿では、必ず保存したこれらの値を使う。返信のタイムスタンプや、運用チャンネルのスレッドのタイムスタンプで決して置き換えない。
 
-## 2. Read the whole report
+## 2. 報告全体を読む（Read the whole report）
 
-Read the root and current replies before deciding.
+判断する前に、ルートと、その時点までの返信を読む。
 
-Capture:
+次を書き留める。
 
-- Reporter wording
-- Product version, app build, environment, and platform when present
-- Expected behavior
-- Observed behavior
-- Frequency and trigger
-- Error text or stack signature
-- Existing issue, commit, or pull request links
-- Any explicit statement that someone is already fixing it
+- 報告者の言葉そのもの
+- 書かれていれば、製品のバージョン、アプリのビルド、環境、プラットフォーム
+- 期待した振る舞い
+- 実際の振る舞い
+- 頻度ときっかけ
+- エラーの文面やスタックのシグネチャ
+- 既存の issue、コミット、プルリクエストへのリンク
+- 誰かがすでに直しているという明示的な発言
 
-Inspect every relevant attachment.
+関係する添付ファイルをすべて調べる。
 
-- Read screenshots at full useful resolution.
-- Review video for the state transition that separates correct and broken behavior.
-- Read logs, traces, and crash text for concrete signatures.
-- If media needs specialist review, use a read-only media worker and ask a narrow question. The worker returns findings only.
-- If an attachment cannot be read, say so in the verdict. Do not invent what it shows.
+- スクリーンショットは、役に立つ最大の解像度で見る。
+- 動画では、正しい振る舞いと壊れた振る舞いを分ける状態の変化を見る。
+- ログ、トレース、クラッシュの文面から、具体的なシグネチャを読み取る。
+- メディアに専門的な確認が必要なら、読み取り専用のメディア用ワーカーを使い、絞った問いを渡す。ワーカーは調べた結果だけを返す。
+- 読めない添付ファイルがあれば、判定でそう書く。何が写っているかを作り上げない。
 
-Use evidence already in the thread before asking the reporter for more.
+報告者に追加の情報を求める前に、スレッドにすでにある証拠を使う。
 
-## 3. Trace cause before routing
+## 3. 振り分ける前に原因を辿る（Trace cause before routing）
 
-Do a bounded source and history pass before choosing an owner or destination. Trace the path from the reported action to the observed result. Use pstack's `why` skill when the report looks like a regression or touches defensive code.
+担当者や振り分け先を選ぶ前に、範囲を限ってソースコードと履歴を一通り調べる。報告された操作から観察された結果に至るまでの処理を辿る。報告がリグレッションに見えるとき、または防御的なコードに関わるときは、pstack の `why` スキルを使う。
 
-1. Identify the likely code path from the reported action to the observed result.
-2. Check whether the visible symptom belongs to that code path or a dependency below it.
-3. Check recent changes when the report looks like a regression.
-4. Check whether a merged commit or open pull request already addresses the same symptom.
-5. Separate confirmed facts from hypotheses.
+1. 報告された操作から観察された結果に至る、ありそうなコードパスを特定する。
+2. 目に見える症状が、そのコードパスのものか、その下にある依存先のものかを確かめる。
+3. 報告がリグレッションに見えるときは、最近の変更を確かめる。
+4. マージ済みのコミットや開いているプルリクエストが、同じ症状にすでに対処していないかを確かめる。
+5. 確認できた事実と仮説を分ける。
 
-This pass does not need a complete root cause. It must be strong enough to avoid routing a visible symptom to the wrong owner.
+この調査で根本原因を突き止めきる必要はない。目に見える症状を間違った担当者に振り分けずに済む程度には、確かでなければならない。
 
-If the repository cannot be read, do not guess a code owner. Continue with a conservative classification and say that cause tracing was unavailable.
+リポジトリを読めないときは、コードの担当者を推測しない。控えめな分類で先に進め、原因を辿れなかったことを書く。
 
-## 4. Classify
+## 4. 分類する（Classify）
 
-Choose one category.
+カテゴリーを 1 つ選ぶ。
 
-### Bug
+### バグ（Bug）
 
-Something violates intended behavior. Examples include wrong output, broken state, an error, a crash, a hang, a silent no-op, or a regression.
+何かが意図した振る舞いに反している。たとえば、誤った出力、壊れた状態、エラー、クラッシュ、ハング、何も起きずに黙って終わる操作、リグレッションである。
 
-### Performance
+### パフォーマンス（Performance）
 
-The report describes measurable slowness, excess memory, battery drain, jank, or another resource problem. Treat it as a bug, but preserve measurements and profiles.
+報告が、測定できる遅さ、過剰なメモリー使用、バッテリーの消耗、表示のカクつき（jank）、その他のリソースの問題を述べている。バグとして扱うが、測定値とプロファイルは残す。
 
-### Feature request
+### 機能要望（Feature request）
 
-The current behavior appears intentional and the reporter wants a different behavior or affordance.
+現在の振る舞いは意図どおりに見え、報告者は別の振る舞いやアフォーダンスを求めている。
 
-### Question or feedback
+### 質問・フィードバック（Question or feedback）
 
-The report asks how something works, expresses a preference without a concrete defect, or gives general feedback.
+報告は、何かの仕組みを尋ねている、具体的な欠陥を伴わない好みを述べている、または一般的なフィードバックをしている。
 
-### Reroute
+### 振り分け直し（Reroute）
 
-Cause tracing shows that another configured destination owns the issue.
+原因を辿った結果、設定済みの別の振り分け先がその問題を担当すると分かる。
 
-When the bug versus feature line is unclear, do not file. The one verdict may ask one focused question and use the `other` marker.
+バグか機能要望かの境目がはっきりしないときは、チケットを作らない。1 件の判定で、絞った質問を 1 つして、`other` のマーカーを使ってよい。
 
-## 5. Apply configured routing
+## 5. 設定した振り分けを適用する（Apply configured routing）
 
-Read the optional routing map from `routing.map_path`.
+任意の振り分けマップを `routing.map_path` から読む。
 
-- Match on confirmed product area, code path, or error signature.
-- A visible symptom alone is not enough when cause tracing points elsewhere.
-- If no route matches, say the owner is unclear. Do not guess.
-- Do not cross-post. Tell the reporter where to take the issue in the source thread.
+- 確認できた製品の領域、コードパス、エラーのシグネチャで照合する。
+- 原因を辿った結果が別の場所を指しているなら、目に見える症状だけでは足りない。
+- どの振り分け先にも一致しないなら、担当者が不明だと書く。推測しない。
+- クロスポストしない。報告元のスレッドで、その問題をどこへ持っていけばよいかを報告者に伝える。
 
-Owner pings are off by default. A ping is allowed only when all of these hold:
+担当者へのメンションは、既定では無効である。メンションしてよいのは、次がすべて成り立つときだけである。
 
-1. The routing map explicitly names the owner.
-2. The config allows that ping type.
-3. The item is a feature request that needs owner input, or recent history identifies a likely regression author with strong evidence.
-4. The owner is not a broad on-call group.
+1. 振り分けマップが、その担当者を明示的に挙げている。
+2. 設定が、その種類のメンションを許している。
+3. その報告が担当者の意見を必要とする機能要望であるか、最近の履歴から、リグレッションを入れた可能性が高い作者を強い証拠で特定できる。
+4. 担当者が、広い範囲のオンコールのグループではない。
 
-No other case gets a ping.
+それ以外の場合はメンションしない。
 
-## 6. Use the issue-tracker adapter
+## 6. issue トラッカーのアダプターを使う（Use the issue-tracker adapter）
 
-The tracker is an adapter, not a required vendor. A Linear adapter is one valid example. A GitHub Issues adapter or another tracker may implement the same contract.
+トラッカーはアダプターであり、特定のベンダーを必須とするものではない。Linear のアダプターは正しい例の 1 つである。GitHub Issues のアダプターや別のトラッカーが、同じ契約を実装してもよい。
 
-The configured adapter must provide:
+設定したアダプターは、必ず次を提供しなければならない。
 
-- Search issues by text, state, label, source URL, and date range
-- Read one issue and its links
-- Create an issue with title, body, status, labels, and source URL
-- Update an existing issue without replacing unrelated fields
-- Add a source link and recurrence note
-- Cancel, close, or delete an issue created by this run if the Slack handoff fails
+- テキスト、状態、ラベル、報告元の URL、日付の範囲による issue の検索
+- 1 件の issue とそのリンクの読み取り
+- タイトル、本文、ステータス、ラベル、報告元の URL を付けた issue の作成
+- 関係のないフィールドを置き換えない、既存の issue の更新
+- 報告元へのリンクと再発のメモの追加
+- Slack への引き継ぎが失敗したときの、この実行で作った issue のキャンセル、クローズ、削除
 
-If a required operation is unavailable, fail closed for that write.
+必要な操作が使えないなら、その書き込みはせずに安全側に倒して止まる（fail closed）。
 
-Resolve configured team, project, status, and labels at runtime. Do not invent IDs, create labels, assign owners, or set priority unless the config explicitly requires it.
+設定したチーム、プロジェクト、ステータス、ラベルは実行時に解決する。設定で明示的に求められていない限り、ID をでっち上げたり、ラベルを作ったり、担当者を割り当てたり、優先度を設定したりしない。
 
-## 7. Dedupe
+## 7. 重複を確認する（Dedupe）
 
-Always check whether this source permalink is already linked to a tracker issue or a prior triage reply. If so, do not post or create a duplicate.
+この報告元のパーマリンクが、トラッカーの issue や以前のトリアージの返信にすでにリンクされていないかを、必ず確かめる。リンクされていれば、重複する投稿も issue も作らない。
 
-For bugs and performance reports, search the tracker using:
+バグとパフォーマンスの報告では、次を使ってトラッカーを検索する。
 
-- Exact error or crash signature
-- Product area
-- Trigger
-- Symptom
-- Version or date window
-- Suspected regression commit
-- Source permalink
+- エラーやクラッシュのシグネチャそのもの
+- 製品の領域
+- きっかけ
+- 症状
+- バージョンまたは日付の範囲
+- リグレッションの原因と疑われるコミット
+- 報告元のパーマリンク
 
-Choose one outcome:
+結果を 1 つ選ぶ。
 
-- Confident duplicate: same signature, or the same area, trigger, and symptom, or a confirmed shared cause.
-- Possibly related: a shared cause is plausible but not proven.
-- Weak resemblance: similarity is superficial.
-- No match.
+- 確実な重複: シグネチャが同じ、または領域・きっかけ・症状が同じ、または原因が共通だと確認できている。
+- 関連の可能性あり: 原因が共通である見込みはあるが、証明されていない。
+- 弱い類似: 似ているのは表面だけである。
+- 一致なし。
 
-For a confident duplicate, update the existing issue with the source permalink and one short recurrence note. Do not reopen, relabel, or reassign it unless the config says to.
+確実な重複なら、既存の issue に報告元のパーマリンクと短い再発のメモを 1 つ加えて更新する。設定で指示されていない限り、その issue を再オープンしたり、ラベルや担当者を付け替えたりしない。
 
-For a possible match, link it in the verdict as uncertain and create nothing.
+関連の可能性がある一致なら、不確かなものとして判定にリンクを載せ、何も作らない。
 
-A long-closed issue is a regression lead, not automatically a live duplicate.
+ずっと前にクローズされた issue は、リグレッションの手がかりであり、そのまま現在も有効な重複になるわけではない。
 
-## 8. Decide whether to create
+## 8. 作るかどうかを決める（Decide whether to create）
 
-Create only when all of these are true:
+次がすべて真のときだけ作る。
 
-1. The classification is bug or performance.
-2. The behavior is clearly broken.
-3. The issue is still live or not known to be fixed.
-4. Dedupe found no confident or plausible live match.
-5. The source parent and permalink passed preflight.
-6. The tracker target fields resolved.
-7. The adapter can compensate if the verdict post fails.
+1. 分類がバグかパフォーマンスである。
+2. 振る舞いが明らかに壊れている。
+3. 問題がまだ起きているか、直ったと分かっていない。
+4. 重複の確認で、確実な一致も、見込みのある現在有効な一致も見つからなかった。
+5. 報告元の親メッセージとパーマリンクが事前確認を通った。
+6. トラッカーの書き込み先のフィールドを解決できた。
+7. 判定の投稿が失敗したときに、アダプターで補償できる。
 
-Never create for a feature request, question, feedback item, reroute, possible duplicate, confident duplicate, or already-fixed issue.
+機能要望、質問、フィードバック、振り分け直し、重複の可能性があるもの、確実な重複、すでに直った問題については、決して作らない。
 
-The new issue must be self-contained:
+新しい issue は、それだけで内容が分かるものにしなければならない。
 
-- Plain title that names the area and symptom
-- Reporter quote
-- Expected and observed behavior
-- Version and environment, or `unknown`
-- Trigger and frequency
-- Source thread permalink
-- Short cause-tracing findings with hypotheses labeled as hypotheses
-- Inline screenshot or representative video frame when supported
-- Links to remaining artifacts
-- Configured intake status and labels
+- 領域と症状を挙げた、平易なタイトル
+- 報告者の言葉の引用
+- 期待した振る舞いと実際の振る舞い
+- バージョンと環境、または `unknown`
+- きっかけと頻度
+- 報告元のスレッドのパーマリンク
+- 原因を辿って分かったことの短いまとめ（仮説には仮説と明記する）
+- 対応していれば、本文に埋め込んだスクリーンショットか、動画の代表的なフレーム
+- 残りの成果物へのリンク
+- 設定した受付ステータスとラベル
 
-Do not put a guessed root cause in the title.
+推測した根本原因をタイトルに入れない。
 
-## 9. Post one verdict
+## 9. 判定を 1 件投稿する（Post one verdict）
 
-Run a fresh source-parent preflight. Then post exactly one reply with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`.
+報告元の親メッセージの事前確認を、改めて行う。そのあと、`channel=SOURCE_CHANNEL_ID` と `thread_ts=SOURCE_THREAD_TS` を指定して、返信をちょうど 1 件投稿する。
 
-Never call a source-channel posting action without a nonempty `thread_ts`.
+空でない `thread_ts` なしで、報告元のチャンネルへの投稿アクションを決して呼ばない。
 
-Keep the reply short:
+返信は短くする。
 
-- Lead with the outcome.
-- Link the existing or new tracker issue when there is one.
-- Mention a reroute or one missing fact when needed.
-- Include at most one allowed owner ping.
-- End with exactly one marker line.
+- 結果を先に書く。
+- 既存または新規のトラッカーの issue があれば、リンクを載せる。
+- 必要なら、振り分け直しの案内か、足りない事実を 1 つ書く。
+- 許されている担当者へのメンションは、多くても 1 件にする。
+- 最後は、ちょうど 1 行のマーカーの行で終える。
 
-Marker contract:
+マーカーの契約:
 
 ```text
 [benny:bug]
@@ -221,20 +221,20 @@ Marker contract:
 [benny:other]
 ```
 
-Use only the configured marker strings. The repro automation trusts the marker only when it comes from the configured triage identity in this source thread.
+設定したマーカーの文字列だけを使う。再現の Automation は、この報告元のスレッドで、設定したトリアージのアカウントが付けたマーカーだけを信頼する。
 
-After posting, read the same source thread and verify the verdict appears under `SOURCE_THREAD_TS`. If it does not, never retry at the root.
+投稿したら、同じ報告元のスレッドを読み、判定が `SOURCE_THREAD_TS` の下に表示されていることを確かめる。表示されていなくても、ルートに投稿し直すことは決してしない。
 
-If this run created a tracker issue and the verdict did not land, use the adapter's compensation action. Verify that the issue is canceled, closed, or deleted. If compensation cannot be verified, report the failure only in the automation run output.
+この実行でトラッカーの issue を作ったのに、判定が投稿されなかったなら、アダプターの補償アクションを使う。その issue がキャンセル、クローズ、削除のいずれかになったことを確かめる。補償を確かめられないなら、失敗は Automation の実行出力にだけ報告する。
 
-## 10. Watch one follow-up window
+## 10. フォローアップの時間を 1 回だけ見守る（Watch one follow-up window）
 
-Watch the source thread for the configured follow-up window, then stop.
+設定したフォローアップの時間のあいだ報告元のスレッドを見守り、そのあと止まる。
 
-- Answer only a direct question to the triage identity.
-- Apply a concrete correction to the tracker issue when safe.
-- Do not emit a second marker in the same run.
-- Stay out of human coordination and side chatter.
-- Stop early if someone asks the automation to stop.
+- 答えるのは、トリアージのアカウントに直接向けられた質問だけにする。
+- 安全なら、具体的な訂正をトラッカーの issue に反映する。
+- 同じ実行の中で、2 つ目のマーカーを出さない。
+- 人間どうしの調整や雑談には加わらない。
+- 誰かが Automation に止まるよう頼んだら、早めに止まる。
 
-Do not extend the window more than once. A new report should start a new run.
+時間の延長は 1 回までにする。新しい報告では、新しい実行を始める。

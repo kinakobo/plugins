@@ -1,169 +1,169 @@
-# Control-adapter contract
+# 操作アダプターの契約（Control-adapter contract）
 
-Benny does not know how to start or drive every app. The user must configure one control skill or adapter that implements this contract for the target app.
+Benny は、あらゆるアプリの起動方法や操作方法を知っているわけではない。ユーザーは、対象アプリについてこの契約を実装した操作用のスキルかアダプターを 1 つ設定しなければならない。
 
-Set its skill name in `control.skill_name`.
+そのスキル名を `control.skill_name` に設定する。
 
-Set the completed user-facing feature map path in `control.feature_map_path`. Copy and fill [`feature-map.example.md`](./feature-map.example.md) outside `.cursor/automations/benny/` instead of editing the copied example.
+記入済みの、ユーザーから見た機能マップ（feature map）のパスを `control.feature_map_path` に設定する。コピーした例を編集するのではなく、[`feature-map.example.md`](./feature-map.example.md) を `.cursor/automations/benny/` の外にコピーして記入する。
 
-If the skill, feature map, or a required capability is absent, ambiguous, or incomplete, repro and fix work must fail closed.
+スキル、機能マップ、必須の機能のどれかが無い、曖昧、あるいは不完全なら、再現と修正の作業は安全側に倒して止まらなければならない（fail closed）。
 
-## Required capabilities
+## 必須の機能（Required capabilities）
 
-### Bring up
+### 立ち上げ（Bring up）
 
-Start the requested app revision in the requested test environment.
+依頼されたアプリのリビジョンを、依頼されたテスト環境で起動する。
 
-Input:
+入力:
 
-- Repository and revision
-- Build or start mode
-- Workspace, account, fixture, and feature-state requirements
-- Artifact directory
-- Completed feature-map path
+- リポジトリとリビジョン
+- ビルドか起動のモード
+- ワークスペース、アカウント、フィクスチャ、機能の状態についての要件
+- 成果物のディレクトリ
+- 記入済みの機能マップのパス
 
-Return:
+返すもの:
 
-- Session identifier
-- How the adapter confirmed the correct app and environment
-- Stable app markers
-- Running process or target details needed by later calls
-- Any missing capability
+- セッションの識別子
+- アプリと環境が正しいことを、アダプターがどう確かめたか
+- 安定したアプリのマーカー
+- 後の呼び出しで必要になる、実行中のプロセスや対象の詳細
+- 欠けている機能
 
-The adapter must distinguish the target app from a similar window, shell, or production instance.
+アダプターは、対象アプリを、似たウィンドウ、シェル、本番のインスタンスと区別できなければならない。
 
-### Drive UI
+### UI の操作（Drive UI）
 
-Perform real user actions:
+実際のユーザー操作を行う。
 
-- Click
-- Type
-- Press keys
-- Scroll
-- Drag
-- Resize
-- Navigate through app controls
+- クリック
+- 入力
+- キーを押す
+- スクロール
+- ドラッグ
+- リサイズ
+- アプリのコントロールを使った移動
 
-Prefer roles, labels, and stable selectors. Use coordinates only after a fresh screenshot.
+ロール、ラベル、安定したセレクターを優先する。座標を使うのは、新しくスクリーンショットを撮ったあとだけにする。
 
-Return each action and the observed state change.
+各操作と、観察した状態の変化を返す。
 
-Do not set internal state, call hidden app methods, write directly to storage, or inject DOM changes to create the symptom.
+症状を起こすために、内部の状態を書き換えたり、隠れたアプリのメソッドを呼んだり、ストレージに直接書き込んだり、DOM の変更を注入したりしない。
 
-### Drive mapped features and states
+### マップにある機能と状態の操作（Drive mapped features and states）
 
-Read the relevant feature-map section before driving the app.
+アプリを操作する前に、関係する機能マップの節を読む。
 
-The adapter must expose ways to:
+アダプターは、次を行う手段を提供しなければならない。
 
-- Navigate every mapped feature through the user-visible path.
-- Invoke the adapter action names listed for that feature.
-- Interact with default, hover, focus-visible, active, disabled, loading, empty, error, selected, open, expanded, and feature-specific states when they apply.
-- Arrange a state through safe fixture data, permissions, flags, service responses, or supported test controls.
-- Reset the feature for a second independent repro attempt.
-- Capture the screenshot, video, and read-only cross-check named by the feature map.
+- マップにあるすべての機能へ、ユーザーに見える道筋で移動する。
+- その機能について挙げられた、アダプターのアクション名を呼び出す。
+- 該当するなら、既定、ホバー、focus-visible、アクティブ、無効、読み込み中、空、エラー、選択中、開いている、展開の各状態と、機能に固有の状態を操作する。
+- 安全なフィクスチャのデータ、権限、フラグ、サービスの応答、サポートされたテスト用のコントロールを使って、状態を整える。
+- 2 回目の独立した再現の試行のために、機能をリセットする。
+- 機能マップが指定するスクリーンショット、動画、読み取り専用の照合をキャプチャする。
 
-Use roles, accessible names, ARIA relationships, stable component markers, and purpose-named data attributes. Never use generated CSS or StyleX classes, dynamic hashes, child indexes, or brittle DOM position.
+ロール、アクセシブルネーム、ARIA の関係、安定したコンポーネントのマーカー、目的を表す名前のデータ属性を使う。生成された CSS や StyleX のクラス、動的なハッシュ、子要素のインデックス、壊れやすい DOM 上の位置は決して使わない。
 
-Arranging a precondition is not permission to inject the reported symptom. The repro itself must still come from real user interaction.
+前提条件を整えてよいからといって、報告された症状を注入してよいわけではない。再現そのものは、あくまで実際のユーザー操作から起こさなければならない。
 
-### Inspect state
+### 状態の検査（Inspect state）
 
-Read state to confirm what the UI shows.
+UI が表示している内容を確かめるために、状態を読む。
 
-Examples:
+例:
 
-- Accessibility tree
-- DOM or view hierarchy
-- Process state
-- Local logs
-- Network request status
-- App-exposed debug state
+- アクセシビリティツリー
+- DOM やビューの階層
+- プロセスの状態
+- ローカルのログ
+- ネットワークリクエストのステータス
+- アプリが公開しているデバッグ用の状態
 
-Inspection is read-only. If a query changes state, it belongs in `drive UI` and must represent a real user action.
+検査は読み取り専用である。状態を変えるクエリは `drive UI` に属し、実際のユーザー操作に相当するものでなければならない。
 
-### Screenshot
+### スクリーンショット（Screenshot）
 
-Capture the current app state to a requested path.
+アプリの現在の状態を、依頼されたパスにキャプチャする。
 
-Return:
+返すもの:
 
-- File path
-- Capture time
-- App marker or window title
-- Short description of what should be visible
+- ファイルのパス
+- キャプチャした時刻
+- アプリのマーカーかウィンドウのタイトル
+- 何が写っているはずかの短い説明
 
-The screenshot must show enough app chrome to prove that the correct app is under test.
+スクリーンショットには、正しいアプリをテストしていることを証明できるだけのアプリの外枠（chrome）が写っていなければならない。
 
-### Recording
+### 録画（Recording）
 
-Start and stop a screen recording around the full repro path.
+再現の道筋全体を挟んで、画面の録画を始めて止める。
 
-Return:
+返すもの:
 
-- File path
-- Start and stop times
-- Captured window or region
-- Whether audio or sensitive overlays were omitted
+- ファイルのパス
+- 開始と停止の時刻
+- キャプチャしたウィンドウか領域
+- 音声や機密情報を含むオーバーレイを除いたかどうか
 
-The recording must show the discriminating final state, not only setup or a loading screen.
+録画には、準備や読み込み中の画面だけでなく、判別できる最終状態が写っていなければならない。
 
-### Cleanup
+### 片付け（Cleanup）
 
-Stop processes and sessions created by the adapter.
+アダプターが作ったプロセスとセッションを止める。
 
-Remove disposable:
+使い捨ての次のものを削除する。
 
-- Browser or app profiles
-- Temporary workspaces
-- Test accounts or fixtures when the adapter created them
-- Debug ports and tunnels
-- Captures past their retention window
+- ブラウザやアプリのプロファイル
+- 一時的なワークスペース
+- アダプターが作ったテスト用のアカウントやフィクスチャ
+- デバッグ用のポートとトンネル
+- 保持期間を過ぎたキャプチャ
 
-Return what was stopped, removed, retained, or left for a person.
+止めたもの、削除したもの、残したもの、人に任せたものを返す。
 
-Cleanup must not delete user work.
+片付けで、ユーザーの作業を削除してはならない。
 
-## Adapter behavior
+## アダプターの振る舞い（Adapter behavior）
 
-The adapter must:
+アダプターは、次を守らなければならない。
 
-- Report capabilities before the repro starts.
-- Report which feature-map sections it can drive and which are blocked.
-- Use the same environment inputs for baseline and patched builds.
-- Surface startup failures as failures.
-- Bound retries.
-- Keep secrets out of logs and artifacts.
-- Keep captures outside the repository.
-- Support a fresh or reset state between the two repro attempts.
-- Avoid production changes unless the user explicitly configured a safe test action.
+- 再現を始める前に、機能を報告する。
+- 機能マップのどの節を操作でき、どの節が進められないかを報告する。
+- ベースラインと修正版のビルドで、同じ環境の入力を使う。
+- 起動の失敗は、失敗として報告する。
+- 再試行の回数に上限を設ける。
+- 秘密情報をログと成果物に入れない。
+- キャプチャはリポジトリの外に置く。
+- 2 回の再現の試行のあいだで、新しい状態かリセットした状態を用意できるようにする。
+- ユーザーが安全なテスト用のアクションを明示的に設定していない限り、本番を変更しない。
 
-## Environment translation
+## 環境の読み替え（Environment translation）
 
-Before declaring an environment block, restate the defect without platform-specific nouns and ask whether the same behavior can be tested safely in the available environment.
+環境が原因で進められないと宣言する前に、プラットフォームに固有の名詞を使わずに不具合を言い直し、使える環境で同じ振る舞いを安全にテストできるかを検討する。
 
-Examples:
+例:
 
-- A named browser may mean any external browser.
-- A named key may mean the configured shortcut.
-- A named remote host may mean a delayed or disconnected remote target.
+- 名前の挙がったブラウザは、任意の外部ブラウザを意味することがある。
+- 名前の挙がったキーは、設定されたショートカットを意味することがある。
+- 名前の挙がったリモートホストは、遅延のある、あるいは接続が切れたリモートの対象を意味することがある。
 
-Use a translated attempt only when it tests the same underlying behavior. Label it as translated evidence. Do not call it an exact repro when the missing environment is part of the defect.
+読み替えた試行を使うのは、それが同じ根底の振る舞いをテストするときだけである。それには「読み替えた証拠」というラベルを付ける。欠けている環境が不具合の一部であるときは、正確な再現とは呼ばない。
 
-Hardware prompts, operating-system permission dialogs, device-only APIs, and unavailable account states may be real blocks.
+ハードウェアのプロンプト、OS の権限ダイアログ、デバイスでしか使えない API、用意できないアカウントの状態は、本当に進められない理由になりうる。
 
-## Setup check
+## セットアップの確認（Setup check）
 
-Before enabling the repro automation, run one harmless adapter check:
+再現の Automation を有効にする前に、害のないアダプターの確認を 1 回行う。
 
-1. Bring up the app.
-2. Confirm the stable app marker.
-3. Load one completed feature-map section.
-4. Navigate to that feature through its user path.
-5. Exercise one disposable state through mapped adapter actions.
-6. Inspect the resulting state.
-7. Capture a screenshot.
-8. Record a short clip.
-9. Clean up.
+1. アプリを立ち上げる。
+2. 安定したアプリのマーカーを確かめる。
+3. 記入済みの機能マップの節を 1 つ読み込む。
+4. その機能へ、ユーザーの道筋で移動する。
+5. マップにあるアダプターのアクションで、使い捨ての状態を 1 つ操作する。
+6. その結果の状態を検査する。
+7. スクリーンショットを撮る。
+8. 短いクリップを録画する。
+9. 片付ける。
 
-Enable repro work only when all nine steps succeed and no source-channel Slack post is involved.
+9 つの手順がすべて成功し、報告元のチャンネルへの Slack の投稿が一切関わらないときに限って、再現の作業を有効にする。

@@ -1,21 +1,21 @@
-### Hillclimb
+### 山登り（Hillclimb）
 
-**You own the metric and the experiment's integrity. Supervise and review. Delegate the attempts.** For sustained, iterative improvement of one measurable thing against a target. A one-off fix is Bug fix or Perf issue. This is the loop.
+**指標と、実験の健全性は自分の責任である。監督とレビューを行い、試行は委任する。** 測定できる 1 つのものを、目標に向けて継続的に繰り返し改善するためのプレイブックである。1 回きりの修正は、バグ修正（Bug fix）か性能問題（Perf issue）にあたる。こちらはループである。
 
-Core discipline: one change, one measurement, keep or revert. Never stack untested changes, and never claim a win from code inspection (the **prove-it-works** principle skill).
+基本の規律は、1 つの変更に 1 回の測定、そして採用か取り消しである。テストしていない変更を決して積み重ねず、コードを読んだだけで改善を主張することも決してしない（**prove-it-works** 原則スキル）。
 
-1. Ground the workload and architecture before choosing the metric. Trace the target, name the realistic workload dimensions that can move the result (data size, history, state, concurrency), and select a case that reproduces the user's complaint. If no case reproduces it, fix the repro instead of hillclimbing. Then fix one metric, the direction that counts as better, and a checkable stop predicate that pairs a target with a floor on attempts so a lucky early win can't end the run (the example "at least 50% better than baseline and at least 10 iterations" is this shape). Use the user's numbers when given, otherwise agree them.
-2. Build the measurement harness, prove its sensitivity, then freeze it (the **build-the-lever** principle skill). Run contrasting realistic workloads and confirm the target case reproduces the symptom while easier cases separate as expected. If the harness cannot distinguish them, revise the workload or metric. Vet the harness with the **benchmark-checklist** skill before you freeze it, and make it print its error count and a count of the work done. Once frozen, one repeatable command emits the metric, sampled enough to clear the noise (median of N, not a single run). Record the baseline metric and a green run of the regression gate (the tests that must keep passing) before any change.
-3. Open the decision log via the **show-me-your-work** skill. A `decision.tsv`, one row per attempt: id, hypothesis, change, before, after, delta, tests, verdict (kept or reverted), note. Read it before each attempt. Keep it out of the tree (gitignored).
-4. Ground each hypothesis in the architecture model from step 1, so it names a specific mechanism ("defer X off the boot path because it blocks first paint"), not "try memoizing something". For a perf metric, order hypotheses by the performance mantras in step 2 of the Perf issue playbook (`playbooks/perf-issue.md`). Borrow only their order, not that step's stop rule.
-5. Loop, one hypothesis per iteration:
-   - Hand the change to a subagent using your configured hillclimb model (default `claude-opus-5-5-xhigh-fast`) with a tight scope. Pick each subagent's reasoning level for the job, per the Subagents section. Supervise and review the diff rather than typing it (the **guard-the-context-window** principle skill). When several independent hypotheses are live, fan them to parallel subagents, each in its own worktree (the **separate-before-serializing-shared-state** principle skill).
-   - Measure before and after with the frozen harness, and run the regression gate.
-   - Accept only when the metric moves past noise and the gate stays green. Otherwise revert the change in full. A tweak that "might help" is not kept.
-   - One commit per accepted fix, staging only the files you changed (`git add <files>`, never `-A`). Log the row either way, kept or reverted.
-   Each iteration ends in a check before the next begins (the **sequence-verifiable-units** principle skill). If the run is unattended, borrow only the wake mechanism from the Autonomous run playbook (`playbooks/autonomous-run.md`), not its stop rule.
-6. Push past the first plateau. On a stall, several rejects in a row, pivot category, combine near-misses, re-read the source, or try something more radical before concluding the hill is climbed. Correctness and simplicity outrank the number. Revert a win that breaks behavior, and keep a simplification that holds the number (the **laziness-protocol** principle skill).
-7. Stop when the predicate is met, or when the remaining ideas are marginal and not worth their cost. Don't relax the predicate to meet it, and don't quit while cheap untried hypotheses remain. If you are stuck, surface it instead of spinning.
-8. Run **Opening a PR** with the accepted commits stacked in the order they landed.
+1. 指標を選ぶ前に、ワークロードとアーキテクチャを把握する。対象をトレースし、結果を左右しうる現実的なワークロードの次元（データの量、履歴、状態、並行性）を挙げ、ユーザーの不満を再現するケースを選ぶ。再現するケースがなければ、山登りではなく再現手順を直す。そのうえで、1 つの指標、改善とみなす方向、確認できる停止の判定条件（predicate）を決める。判定条件は、目標と試行回数の下限を組にして、序盤の偶然の改善で実行が終わらないようにする（「ベースラインより少なくとも 50% 改善し、かつ少なくとも 10 回反復する」という例がこの形である）。ユーザーが数値を示していればそれを使い、なければ合意して決める。
+2. 測定用のハーネスを作り、その感度を証明してから固定する（**build-the-lever** 原則スキル）。対照的な現実的ワークロードを実行し、対象のケースが症状を再現し、より易しいケースが想定どおりに分かれることを確かめる。ハーネスがそれらを区別できなければ、ワークロードか指標を見直す。固定する前に **benchmark-checklist** スキルでハーネスを点検し、エラーの数と、こなした作業の量を出力させる。固定したあとは、繰り返し実行できる 1 つのコマンドが、ノイズを超えるのに十分なサンプル数で指標を出す（1 回の実行ではなく N 回の中央値）。変更を加える前に、ベースラインの指標と、回帰のゲート（通り続けなければならないテスト）が通った実行を記録する。
+3. **show-me-your-work** スキルで決定ログを開く。`decision.tsv` に、試行ごとに 1 行を書く。列は id、hypothesis（仮説）、change（変更）、before（変更前）、after（変更後）、delta（差）、tests（テスト）、verdict（判定。kept か reverted）、note（メモ）である。試行のたびに、その前にこれを読む。ツリーの外に置く（gitignore する）。
+4. 各仮説は手順 1 のアーキテクチャのモデルに基づかせ、「何かをメモ化してみる」ではなく、具体的な仕組み（「X は最初の描画を妨げているので、起動の経路から外して遅らせる」）を名指すようにする。性能の指標なら、性能問題（Perf issue）のプレイブック（`playbooks/perf-issue.md`）の手順 2 にある性能のマントラの順に仮説を並べる。借りるのはその順序だけで、その手順の停止の規則は借りない。
+5. 1 回の反復につき 1 つの仮説で、ループする。
+   - 変更は、設定した hillclimb のモデル（既定は `claude-opus-5-5-xhigh-fast`）を使うサブエージェントに、範囲を絞って渡す。サブエージェントの推論のレベルは、サブエージェント（Subagents）の節に従って仕事ごとに選ぶ。差分を自分で打つのではなく、監督してレビューする（**guard-the-context-window** 原則スキル）。独立した仮説が複数あるときは、それぞれ専用の worktree で動く並列のサブエージェントにファンアウトする（**separate-before-serializing-shared-state** 原則スキル）。
+   - 固定したハーネスで前後を測り、回帰のゲートを実行する。
+   - 指標がノイズを超えて動き、ゲートが通ったままのときだけ採用する。そうでなければ、変更を完全に取り消す。「役立つかもしれない」調整は残さない。
+   - 採用した修正 1 つにつき 1 コミットとし、変えたファイルだけをステージする（`git add <files>`。決して `-A` は使わない）。採用でも取り消しでも、行は必ず記録する。
+   各反復は、次の反復が始まる前に確認で終える（**sequence-verifiable-units** 原則スキル）。無人で実行するなら、自律実行（Autonomous run）のプレイブック（`playbooks/autonomous-run.md`）から起こす仕組みだけを借り、停止の規則は借りない。
+6. 最初の停滞（plateau）で止まらずに先へ進む。行き詰まったとき、つまり何度も続けて不採用になったときは、山を登りきったと結論する前に、仮説の種類を変える、惜しかったものを組み合わせる、ソースを読み直す、もっと大胆なことを試す、のいずれかを行う。正しさと単純さは数値より優先する。振る舞いを壊す改善は取り消し、数値を保つ単純化は残す（**laziness-protocol** 原則スキル）。
+7. 判定条件を満たしたとき、または残ったアイデアの効果が小さくコストに見合わないときに止まる。判定条件を満たすために判定条件を緩めない。安く試せる未試行の仮説が残っているうちはやめない。行き詰まったら、空回りせずにそのことを報告する。
+8. 採用したコミットを取り込んだ順に積み、**PR を開く（Opening a PR）** を実行する。
 
-**Reply:** the metric and target, baseline to final with the percent delta, iterations run (kept vs reverted), each accepted fix on one line, the `decision.tsv` path, and the best idea you would try next if pushed further.
+**返答。** 指標と目標、ベースラインから最終値までとその変化率、実行した反復の数（採用と取り消しの内訳）、採用した修正を 1 行ずつ、`decision.tsv` のパス、さらに続けるなら次に試す最良のアイデア。

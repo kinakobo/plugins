@@ -1,14 +1,14 @@
 # benny
 
-benny gives you two cursor automations for slack issue reports. one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.
+benny は、Slack に投稿される issue の報告を扱う 2 つの Cursor Automation を提供する。1 つは、報告を 1 件ずつトリアージする。もう 1 つは、確認されたバグを再現し、小さな修正をドラフトで用意することもある。
 
-the files in this directory are dormant setup and automation sources. they do not appear as slash skills.
+このディレクトリのファイルは、セットアップと Automation の元になるファイルで、置いただけでは動かない。スラッシュスキルとしても表示されない。
 
-## set it up
+## セットアップ（set it up）
 
-1. point cursor at [`FOR_AGENTS.md`](./FOR_AGENTS.md) and name the target repository.
-2. let setup merge this whole directory into the target at `.cursor/automations/benny/`. it must preserve destination-only files and review conflicts instead of overwriting local edits.
-3. let setup enable pstack in the target repository's `.cursor/settings.json` for shared dependencies:
+1. Cursor に [`FOR_AGENTS.md`](./FOR_AGENTS.md) を渡し、対象のリポジトリを伝える。
+2. セットアップの手順に、このディレクトリ全体を対象リポジトリの `.cursor/automations/benny/` へマージさせる。セットアップは、コピー先にだけあるファイルを残し、ローカルの編集を上書きせずに衝突を確認しなければならない。
+3. 共有の依存先を使うため、セットアップの手順に、対象リポジトリの `.cursor/settings.json` で pstack を有効にさせる。
 
 ```json
 {
@@ -18,6 +18,6 @@ the files in this directory are dormant setup and automation sources. they do no
 }
 ```
 
-4. keep user-owned configuration outside the copied pack, for example in `.cursor/benny/`. adapt [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md).
-5. commit `.cursor/settings.json`, `.cursor/automations/benny/`, and any secret-free configuration before enabling either automation.
-6. review each new automation draft or update existing automations in their editors. then send a harmless test report and verify every source-channel post stays in the original thread.
+4. ユーザーが管理する設定は、コピーしたパックの外（たとえば `.cursor/benny/`）に置く。[`configuration.example.yaml`](./templates/configuration.example.yaml) と [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md) を自分の環境に合わせて書き換える。
+5. どちらかの Automation を有効にする前に、`.cursor/settings.json`、`.cursor/automations/benny/`、秘密情報を含まない設定をコミットする。
+6. 新しい Automation の下書きをそれぞれ確認するか、既存の Automation をそれぞれのエディターで更新する。そのあと、害のないテスト用の報告を送り、報告元のチャンネルへの投稿がすべて元のスレッドの中にとどまることを確かめる。

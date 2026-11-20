@@ -1,13 +1,13 @@
 ---
 name: principle-sequence-verifiable-units
-description: "Apply to multi-step work (sweeps, migrations, runs of similar edits) and to how you stack commits and PRs. Break work into small units that each end in a verifiable state, check each before the next, and order delivery so the sequence proves itself to a reviewer."
+description: "複数の手順からなる作業（一括の修正、移行、似た編集の連続）と、コミットや PR の積み重ね方に適用する。作業を、それぞれが検証できる状態で終わる小さな単位に分け、次に進む前に各単位を確かめ、並び順そのものがレビュアーへの証明になるように届ける順序を決める。"
 disable-model-invocation: true
 ---
 
-# Sequence work into verifiable units
+# 検証できる単位で順に進める（Sequence work into verifiable units）
 
-Order work as small units that each end in a state you can check, and do not advance until the current one is green.
+作業を、それぞれが確かめられる状態で終わる小さな単位として並べ、いまの単位のチェックが通る（green になる）まで先に進まない。
 
-In a sweep, migration, or run of similar edits, each unit is a bracket: known-good state, one change, run the check, proceed. Run the per-unit check even when a tool does the edits.
+一括の修正（sweep）、移行、似た編集の連続では、各単位を「正しいとわかっている状態、1 つの変更、チェックの実行、次へ」で区切る。編集をツールが行うときも、単位ごとのチェックは実行する。
 
-Deliver in the order that proves the work: the failing test first, then the fix. The subtraction before the reshape. The baseline before the treatment. Each commit lands on its own.
+作業を証明する順序で届ける。失敗するテストが先で、修正が後。作り変えの前に削除。処置の前にベースライン。どのコミットも単独で取り込める状態にする。

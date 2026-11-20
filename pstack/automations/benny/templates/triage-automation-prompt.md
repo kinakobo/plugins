@@ -1,16 +1,16 @@
-# Triage automation prompt
+# トリアージの Automation のプロンプト（Triage automation prompt）
 
-> Source material for the copied setup workflow. Paraphrase this intent into a built-in `automate` draft after `automate` confirms that the copied pack is committed in the repository where the automation will run.
+> コピーしたセットアップの手順で使う元の資料。Automation を動かすリポジトリに、コピーしたパックがコミットされていることを `automate` が確かめてから、この意図を言い換えて、組み込みの `automate` の下書きに書き込む。
 
-Read and follow `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md` for this run.
+この実行では、`.cursor/automations/benny/skills/triage-issue-reports/SKILL.md` を読んで従う。
 
-Configuration source. Include this repository-relative path only when it is committed in the same target repository. Otherwise paraphrase the configured values. Never use a plugin source or cache path:
+設定の読み込み元。このリポジトリ相対パスは、同じ対象リポジトリにコミットされているときだけ含める。そうでなければ、設定した値を言い換えて書く。プラグインのソースのパスやキャッシュのパスは決して使わない。
 
 ```text
 {{BENNY_CONFIG_PATH}}
 ```
 
-Trigger:
+トリガー:
 
 ```json
 {
@@ -20,15 +20,15 @@ Trigger:
 }
 ```
 
-The creation intent should describe this as a new top-level report in the configured source Slack channel.
+作成時の意図では、これを、設定した報告元の Slack チャンネルへのトップレベルの新しい報告として説明する。
 
-Treat the source channel and root thread timestamp as immutable. If either is missing or does not match configuration, stop without posting or writing to the issue tracker.
+報告元のチャンネルとルートスレッドのタイムスタンプは、変わらない値として扱う。どちらかが欠けているか、設定と一致しないときは、投稿も issue トラッカーへの書き込みもせずに止まる。
 
-The committed operational file owns classification, attachment review, cause tracing, routing, dedupe, tracker writes, and the final verdict. Post no progress messages. Never post a root message in the source channel.
+分類、添付ファイルの確認、原因の追跡、振り分け、重複の確認、トラッカーへの書き込み、最終的な判定は、コミット済みの手順ファイルが受け持つ。途中経過のメッセージは投稿しない。報告元のチャンネルに決してルートメッセージを投稿しない。
 
-The coordinator is the only Slack poster. Any delegated worker must be read-only, return findings only, and receive an explicit ban on every Slack write action.
+Slack に投稿するのはコーディネーターだけである。委任先のワーカーは、必ず読み取り専用にし、調べた結果だけを返させ、Slack へのあらゆる書き込み操作を明示的に禁じなければならない。
 
-End the single verdict with exactly one configured marker:
+1 件だけの判定の末尾には、設定したマーカーをちょうど 1 つ付ける。
 
 ```text
 [benny:bug]
@@ -36,4 +36,4 @@ End the single verdict with exactly one configured marker:
 [benny:other]
 ```
 
-A bug or performance marker may add `tracker=<URL>`.
+bug と performance のマーカーには `tracker=<URL>` を付け足してよい。

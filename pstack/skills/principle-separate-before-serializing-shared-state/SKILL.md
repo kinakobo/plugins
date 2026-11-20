@@ -1,11 +1,11 @@
 ---
 name: principle-separate-before-serializing-shared-state
-description: "Apply when concurrent actors might write to the same file, branch, key, or state object. Eliminate the sharing first; serialize structurally only when one shared writer is a real invariant."
+description: "並行に動くアクターが、同じファイル、ブランチ、キー、状態オブジェクトに書き込むおそれがあるときに適用する。まず共有をなくし、共有の書き込み先が 1 つであることが本当に不変条件であるときだけ、構造的に直列化する。"
 disable-model-invocation: true
 ---
 
-# Separate Before Serializing Shared State
+# 共有状態は直列化する前に分離する（Separate Before Serializing Shared State）
 
-When concurrent actors might write the same file, branch, key, or object, first ask whether they need one shared object or are publishing independent facts. Default to giving each actor its own file, key, branch, or state directory, and merge only where the state is read. Two workers writing their own field into one `state.json` is still shared mutation.
+並行に動くアクターが同じファイル、ブランチ、キー、オブジェクトに書き込むおそれがあるときは、まず、本当に 1 つの共有オブジェクトが必要なのか、それとも互いに独立した事実を書き出しているだけなのかを問う。既定では、アクターごとに専用のファイル、キー、ブランチ、状態ディレクトリを与え、状態を読む場所でだけマージする。2 つのワーカーが 1 つの `state.json` にそれぞれ自分のフィールドを書き込むのも、やはり共有状態の変更である。
 
-Only when one shared write target is a real invariant, serialize access structurally (a lockfile, a single writer, sequential phases, compare-and-swap). Instructions are not concurrency control, and "we need a lock" is a smell to check first.
+共有の書き込み先が 1 つであることが本当に不変条件であるときに限り、アクセスを構造的に直列化する（ロックファイル、単一の書き手、順番に進むフェーズ、compare-and-swap）。指示は並行制御にはならない。また、「ロックが必要だ」という発想は、まず疑ってかかるべき兆候（smell）である。

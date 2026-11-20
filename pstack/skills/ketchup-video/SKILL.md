@@ -1,29 +1,29 @@
 ---
 name: ketchup-video
-description: "Catch the user up like /ketchup, with a short subtitled video of slides for what happened and the waiting calls as text under it. Use for /ketchup-video."
+description: "/ketchup と同じようにユーザーを追いつかせる。起きたことは字幕付きのスライドの短い動画で示し、待っている判断はその下にテキストで書く。/ketchup-video で使う。"
 disable-model-invocation: true
 ---
 
-# Ketchup video
+# Ketchup の動画版（Ketchup video）
 
-Follow [`/ketchup`](../ketchup/SKILL.md), but show what happened in a short subtitled video instead of its summary and visuals. Its window starts at the last message the user wrote before `/ketchup-video`, not before any earlier `/ketchup`. Writing and rendering the video, outside the repo, is the one exception to its read-only rule. The reply is ketchup's opening sentence, the embedded video, one line naming any work left that you can do yourself, and the action items. When the video shows a call's options, call each option by the name the video gives it. If the render fails, say so in one line and give only the calls.
+[`/ketchup`](../ketchup/SKILL.md) に従うが、起きたことは、そのまとめとビジュアルの代わりに、字幕付きの短い動画で示す。対象とする期間は、ユーザーが `/ketchup-video` の前に書いた最後のメッセージから始まる。それより前の `/ketchup` の前のメッセージからではない。リポジトリの外で動画を書いてレンダリングすることは、ketchup の読み取り専用の規則の唯一の例外である。返答は、ketchup の冒頭の 1 文、埋め込んだ動画、自分でまだできる残りの作業を挙げる 1 行、アクションアイテムで構成する。動画が判断の選択肢を示すときは、各選択肢を、動画で付けた名前で呼ぶ。レンダリングに失敗したら、1 行でそう言い、判断だけを示す。
 
-## Slides
+## スライド（Slides）
 
-Use the screenshots, recordings, diffs, and data the work produced, not the chat's prose about them. Before you draw, write the one sentence the user should leave with and one line per slide. Drop each slide that does not change what the user knows. Use at most 10 slides, and fewer is better. Neither note goes in the reply.
+チャットでの説明文ではなく、作業で得たスクリーンショット、録画、diff、データを使う。描く前に、ユーザーに持ち帰ってほしい 1 文と、スライドごとに 1 行を書く。ユーザーが知っていることを変えないスライドは落とす。スライドは多くとも 10 枚にし、少ないほどよい。どちらのメモも返答には入れない。
 
-Each slide makes one point. Build the slides on one picture and change it from slide to slide, rather than cut to an unrelated one. A color or shape means the same thing on every slide. Show the work in pictures, such as how a system works, a PR stack with each PR's state, a before and after of a fix, or options side by side. Point at what changed with arrows, highlights, and motion. A slide is never a bullet list, a status list, a table, or boxes with nothing connecting them.
+各スライドで示す要点は 1 つにする。無関係な画像に切り替えるのではなく、1 つの画像を土台にスライドを組み立て、スライドごとにそれを変えていく。色や形は、どのスライドでも同じ意味にする。作業は画像で示す。たとえば、システムの仕組み、各 PR の状態を添えた PR のスタック、修正の前後、並べた選択肢である。変わったところは、矢印、ハイライト、動きで指し示す。スライドは決して、箇条書き、ステータスの一覧、表、何もつながっていない箱の並びにしない。
 
-Keep text to the minimum. Put each label on the thing it names, in plain words a person would say, not tags like "Tests: pass". Never caption what a picture shows, and never give a fact twice, across slides or in the text under them.
+テキストは最小限にする。各ラベルは、それが指すものの上に、「テスト: 合格」のようなタグではなく、人が口にする平易な言葉で置く。画像に写っていることに決してキャプションを付けず、同じ事実を、スライドどうしでもその下のテキストでも、決して 2 回示さない。
 
-Show what came of each thing the user asked for, and whether it is done, still running, failed, or not checked. Never show something done that still waits on the user. Show any bug found and fixed on the way. If a visible change has no screenshot, say so on its slide and name what changed on screen. Draw only from facts you have. Never invent a number, and never draw a screen you did not capture.
+ユーザーが頼んだことごとに、何が得られたか、そして完了、実行中、失敗、未確認のどれかを示す。ユーザーをまだ待っているものを、決して完了として示さない。途中で見つけて直したバグがあれば示す。目に見える変更にスクリーンショットが無ければ、そのスライドでそう述べ、画面で何が変わったかを挙げる。手元にある事実からだけ描く。決して数値を作り出さず、キャプチャしていない画面を決して描かない。
 
-## Subtitles
+## 字幕（Subtitles）
 
-Give each slide one short subtitle line, about ten words, that says its point the way you would tell the user, from only what that slide shows. Say what the picture means rather than read out its labels. Put the subtitle in a strip below the slide, the same height on every slide and empty except for the subtitle, so it never covers the slide. Set it small, but readable when the video plays at chat size.
+各スライドに、10 語ほどの短い字幕を 1 行付ける。字幕は、そのスライドに写っていることだけをもとに、ユーザーに話すようにその要点を言う。ラベルを読み上げるのではなく、画像が何を意味するかを言う。字幕は、スライドの下の帯に置く。帯はどのスライドでも同じ高さにし、字幕のほかには何も置かず、字幕が決してスライドに重ならないようにする。文字は小さくするが、チャットの大きさで動画を再生したときに読めるようにする。
 
-## Render
+## レンダリング（Render）
 
-Render one silent landscape video, such as an mp4, with motion between slides. Every frame is the slide itself, edge to edge, above its subtitle strip. Make the frames from the slides, never by recording a screen, and burn each subtitle into its slide's frames so it stays on screen for the slide's whole hold. The hold is the time a slide is fully on screen, not counting the motion into or out of it. Hold each slide long enough to read the words it adds, at least one second for each three words. A slide adds its subtitle and each word that was not on the slide before it, including a label it changes. The first slide adds all its words. Words inside a screenshot do not count.
+mp4 などの、音声の無い横長の動画を 1 本レンダリングし、スライドのあいだには動きを付ける。どのフレームも、字幕の帯の上にスライドそのものを端から端まで写したものにする。フレームは、決して画面の録画からではなく、スライドから作る。各字幕はそのスライドのフレームに焼き込み、スライドの静止時間のあいだずっと画面に出ているようにする。静止時間（hold）とは、スライドが画面に完全に表示されている時間で、そのスライドに入る動きと出る動きは含まない。各スライドは、そのスライドで増える語を読めるだけの時間、少なくとも 3 語につき 1 秒、静止させる。スライドで増える語とは、その字幕と、直前のスライドに無かった各語であり、変更したラベルも含む。最初のスライドでは、すべての語が増える語になる。スクリーンショットの中の語は数えない。
 
-Before you embed the video, check the rendered file. Look at one frame from each slide at chat size, and check that its subtitle is readable and covers nothing. Measure each hold by matching the file's frames to the slide, not with a still-frame detector, which counts the faint ends of a fade as still. Count the words each slide adds against its measured hold. Fix any slide you cannot read in that time, render again, and check again.
+動画を埋め込む前に、レンダリングしたファイルを確かめる。各スライドからフレームを 1 つずつ、チャットの大きさで見て、字幕が読め、何にも重なっていないことを確かめる。各静止時間は、静止フレームの検出器ではなく、ファイルのフレームをスライドと照らし合わせて測る。静止フレームの検出器は、フェードの薄い端まで静止として数えてしまう。各スライドで増える語の数を、測った静止時間と比べる。その時間で読めないスライドは直し、もう一度レンダリングして、もう一度確かめる。

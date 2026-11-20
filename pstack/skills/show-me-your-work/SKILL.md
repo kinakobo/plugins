@@ -1,27 +1,27 @@
 ---
 name: show-me-your-work
-description: "Keep a reviewable decision trail for long-running or unattended work: a TSV log with one row per decision (what, why, evidence, result). Local by default; commit it when a reviewer needs the trail to trust the result. Use for /show-me-your-work, autonomous or multi-phase runs, or work a human reviews after stepping away."
+description: "長時間の作業や無人の作業について、レビューできる決定の記録を残す。決定 1 つにつき 1 行の TSV のログに、何を、なぜ、証拠、結果を書く。既定ではローカルに置き、レビュアーが結果を信頼するのに記録が必要なときはコミットする。/show-me-your-work、自律的な実行や複数フェーズの実行、人間が席を外したあとでレビューする作業に使う。"
 disable-model-invocation: true
 ---
 
-# Show me your work
+# 作業の過程を見せる（Show me your work）
 
-Keep one canonical log.
+正となるログを 1 つだけ持つ。
 
-## The format
+## 書式（The format）
 
-A single TSV file, one row per decision. Cells stay single-line. Evidence is a pointer, not prose.
+1 つの TSV ファイルに、決定 1 つにつき 1 行を書く。セルは 1 行に収める。証拠は文章ではなく、参照先を指すものにする。
 
-Copy `references/decision-log-template.tsv` (the header row) to start a clean log. Columns:
+`references/decision-log-template.tsv`（ヘッダー行）をコピーして、新しいログを始める。列は次のとおりである。
 
-- **ts.** ISO8601 timestamp.
-- **phase.** The phase or workstream.
-- **decision.** What was chosen or done, one line.
-- **why.** The reason in plain words. If a principle drove it, say it plainly, not as a jargon tag.
-- **evidence.** A link or path that proves it: commit SHA, PR number, `file:line`, or an artifact, trace, or screenshot path. Never a paragraph.
-- **result.** The outcome or predicate state: `tests green`, `reverted`, `pixel-diff 0`, `INCONCLUSIVE`, `open`.
+- **ts.** ISO8601 のタイムスタンプ。
+- **phase.** フェーズか、作業の流れ（workstream）。
+- **decision.** 選んだことや行ったこと。1 行で書く。
+- **why.** 理由を平易な言葉で書く。原則に従って決めたなら、専門用語のタグではなく、平易に言う。
+- **evidence.** それを証明するリンクかパス。コミットの SHA、PR 番号、`file:line`、成果物・トレース・スクリーンショットのパスなど。決して段落を書かない。
+- **result.** 結果か、判定条件（predicate）の状態。`tests green`、`reverted`、`pixel-diff 0`、`INCONCLUSIVE`、`open` など。
 
-An example, plain-spoken so a reviewer reads it at a glance.
+例を示す。レビュアーが一目で読めるよう、平易な言葉で書いてある。
 
 ```
 ts	phase	decision	why	evidence	result
@@ -31,52 +31,52 @@ ts	phase	decision	why	evidence	result
 2026-05-24T12:30:00Z	widget	threw out a helper's work because its screenshots were blank	checked the real files instead of trusting its summary	worktree reset	reverted, tightened the instructions for next time
 ```
 
-## Logging a row
+## 行を記録する（Logging a row）
 
-Write each entry the way you'd tell a teammate what you did. Plain words, concrete actions, no AI speak or abstract jargon (the **unslop** skill applies to log text too).
+各エントリーは、自分がしたことをチームメイトに伝えるように書く。平易な言葉と具体的な行動で書き、AI っぽい言い回しや抽象的な専門用語は使わない（ログの文面にも **unslop** スキルを適用する）。
 
-Use the helper `scripts/log.sh <logfile> <phase> <decision> <why> <evidence> <result>`. It stamps `ts`, writes the header on first use, strips stray tabs/newlines, and prefixes any cell starting with `=`, `+`, `-`, or `@` with a single quote. A bare `printf` appending a row works too, but mind those same bytes if cells come from generated or user-supplied text.
+ヘルパーの `scripts/log.sh <logfile> <phase> <decision> <why> <evidence> <result>` を使う。このスクリプトは `ts` を記入し、初回にヘッダーを書き、紛れ込んだタブや改行を取り除き、`=`、`+`、`-`、`@` で始まるセルの先頭にシングルクォートを付ける。素の `printf` で行を追記してもよいが、セルが生成された文章やユーザーが渡した文章から来るなら、同じバイトに注意する。
 
-Log decision points and checkpoints, not every action: a fork chosen, a unit completed with its verification result, a pivot or revert with its trigger, a blocker surfaced, a gate fixed. For loop runs, one row per iteration. Skip the trivial and self-evident.
+記録するのは、すべての行動ではなく、決定の時点とチェックポイントである。たとえば、分かれ道での選択、検証の結果を伴う単位の完了、きっかけを伴う方針転換やリバート、見つかった障害、直したゲートである。ループで回す実行では、反復 1 回につき 1 行にする。些細なことや自明なことは省く。
 
-A run is one agent conversation, including its later turns and any summary of it. A pickup, a replacement agent, or a new chat starts a new run. When a run adds to a log that already has rows, its first row has phase `start`, and so does its first row after another run's `start` row. So a run that comes back to a log in a later turn first reads the log's last rows to see whether another run wrote since. A `start` row names the `ts` range of the rows before it that this run did not write, and its evidence names this run, such as its agent id. Use phase `start` for nothing else.
+1 回の実行（run）とは、エージェントとの 1 つの会話のことで、その後のターンや会話の要約も含む。作業の引き継ぎ、交代したエージェント、新しいチャットは、新しい実行を始める。すでに行があるログに実行が追記するときは、その最初の行の phase を `start` にする。別の実行の `start` 行のあとに書く最初の行も同様である。そのため、後のターンでログに戻ってきた実行は、まずログの最後の数行を読み、そのあいだに別の実行が書いていないかを確かめる。`start` 行には、その前にある、この実行が書いていない行の `ts` の範囲を書き、evidence にはエージェントの id など、この実行を示すものを書く。phase の `start` は、ほかの用途には使わない。
 
-## Where it lives
+## 置き場所（Where it lives）
 
-By default the log is a working artifact, not committed. Keep it at `decisions.tsv` in the work dir, or `.audit/<task-slug>.tsv` when several efforts run at once, and leave it out of git.
+既定では、ログはコミットしない作業用の成果物である。作業ディレクトリの `decisions.tsv` に置くか、複数の作業が同時に進むときは `.audit/<task-slug>.tsv` に置き、git には入れない。
 
-Commit it only when the work is ambitious enough that a reviewer needs the trail to trust the result.
+コミットするのは、作業の規模が大きく、レビュアーが結果を信頼するのに記録が必要なときだけである。
 
-## Rules
+## 規則（Rules）
 
-- Append-only. A wrong call gets a new row that supersedes it. Never edit or delete history.
-- Prefer evidence produced by committed scripts over hand-made one-offs (the **encode-lessons-in-structure** principle skill).
+- 追記のみ。誤った判断には、それを置き換える新しい行を足す。履歴は決して編集も削除もしない。
+- 手作りの使い捨てより、コミット済みのスクリプトが生成する証拠を優先する（**encode-lessons-in-structure** 原則スキル。教訓を構造に埋め込む）。
 
-## Audit the log against the transcript
+## トランスクリプトと照らしてログを監査する（Audit the log against the transcript）
 
-At the end of the run, before handing back, check the log told the truth. Read this run's transcript under the active workspace's `agent-transcripts/` directory (the system prompt names the path). Don't glob across `~/.cursor/projects/*/`. That reads unrelated private chats. Walk this run's rows against what actually happened. Each stretch of them begins at one of this run's `start` rows, or at the first row if this run created the log, and ends at the next `start` row of another run:
+実行の終わりに、作業を引き渡す前に、ログが事実を書いているかを確かめる。アクティブなワークスペースの `agent-transcripts/` ディレクトリにある、この実行のトランスクリプトを読む（パスはシステムプロンプトに書いてある）。`~/.cursor/projects/*/` をまたいで glob しない。関係のない非公開のチャットまで読んでしまう。この実行の行を、実際に起きたことと照らし合わせていく。この実行の行のまとまりは、それぞれ、この実行の `start` 行のどれか（この実行がログを作ったなら最初の行）から始まり、別の実行の次の `start` 行で終わる。
 
-- Check that every row maps to a real decision or action.
-- Check that each row's evidence resolves and shows what the row claims.
-- A fork, pivot, or abandoned approach that shaped the work but isn't logged is a gap. Add it.
+- どの行も、実際の決定か行動に対応していることを確かめる。
+- 各行の証拠がたどれて、その行の主張を示していることを確かめる。
+- 作業を方向づけたのに記録されていない分かれ道、方針転換、放棄した方法は、抜けである。それを追記する。
 
-Correct the log, not the story. The audit never edits or removes a row, even an invented one. When a row records neither a real decision nor a real action, or its claim or evidence is wrong, add a row that supersedes it with what actually happened and a pointer that resolves. This audit does not check rows outside this run's stretches. If this run's own work shows one of them is wrong, supersede it like any wrong call.
+直すのは話の筋ではなく、ログである。監査では、作り話の行であっても、決して行を編集も削除もしない。実際の決定も実際の行動も記録していない行や、主張や証拠が間違っている行には、実際に起きたことと、たどれる参照先を書いた行を足して置き換える。この監査は、この実行のまとまりの外にある行は確かめない。この実行自身の作業からそのどれかが間違っていると分かったら、ほかの誤った判断と同じように、新しい行で置き換える。
 
-## Cross-model review of the trail
+## 別のモデルによる記録のレビュー（Cross-model review of the trail）
 
-Before handing back, spawn a subagent on another vendor's model than the one that did the work. Self-review is not a substitute. The subagent reads the audit trail and the run's transcript, then flags what the user should pay attention to. Not a redo of the work, a scan for what's suboptimal or risky. Pick each subagent's reasoning level for the job, per the Subagents section of the **poteto-mode** skill.
+作業を引き渡す前に、作業をしたモデルとは別のベンダーのモデルでサブエージェントを起動する。セルフレビューでは代わりにならない。サブエージェントは監査の記録と実行のトランスクリプトを読み、ユーザーが注意すべき点を指摘する。作業のやり直しではなく、最善でない点や危うい点を探す走査である。各サブエージェントの推論のレベルは、**poteto-mode** スキルのサブエージェント（Subagents）の節に従って、仕事に合わせて選ぶ。
 
-- Decisions logged with weak or absent evidence.
-- Verification steps skipped or claimed without proof in the transcript.
-- Choices that look risky in hindsight (premature, scope-creeping, papering over a symptom).
-- Gaps the user would otherwise miss on a casual skim.
+- 証拠が弱い、あるいは無いまま記録された決定。
+- 省かれた検証の手順や、トランスクリプトに証明が無いのに行ったと主張された検証の手順。
+- あとから見ると危うい選択（時期尚早、範囲の広がり、症状を取り繕っただけのもの）。
+- ユーザーがざっと目を通しただけでは見落とす抜け。
 
-Every reply for a run that produced a trail ends with an "Attention" section. Lead with the reviewer's model on its own line (`reviewed by <model>`), then list each flag pointing to specific rows or moments. "No flags" is a valid value. The model name is not.
+記録を残した実行の返答は、どれも「Attention」（注意点）の節で終える。最初に、レビュアーのモデルを 1 行で書き（`reviewed by <model>`）、そのあと、具体的な行や時点を指す指摘を 1 つずつ並べる。指摘については「No flags」（指摘なし）と書いてよいが、モデル名はそうはいかない。
 
-## Reviewing the trail
+## 記録をレビューする（Reviewing the trail）
 
-Read top to bottom, follow the evidence pointers, spot-check. GitHub renders a committed TSV as a table. `column -s$'\t' -t decisions.tsv` renders it in a terminal.
+上から下へ読み、証拠の参照先をたどり、抜き取りで確かめる。コミットした TSV は、GitHub が表として表示する。ターミナルでは `column -s$'\t' -t decisions.tsv` で表示できる。
 
-## Composing this skill
+## このスキルを組み合わせる（Composing this skill）
 
-Other skills route their audit trail here instead of inventing one. Reference it by name and let it own the format. Don't restate the columns.
+ほかのスキルは、監査の記録を独自に作らず、このスキルで残す。名前で参照し、書式の決定はこのスキルに任せる。列の説明を繰り返さない。

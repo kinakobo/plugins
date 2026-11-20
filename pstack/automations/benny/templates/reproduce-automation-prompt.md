@@ -1,16 +1,16 @@
-# Reproduce automation prompt
+# 再現の Automation のプロンプト（Reproduce automation prompt）
 
-> Source material for the copied setup workflow. Paraphrase this intent into a built-in `automate` draft after `automate` confirms that the copied pack is committed in the repository where the automation will run.
+> コピーしたセットアップの手順で使う元の資料。Automation を動かすリポジトリに、コピーしたパックがコミットされていることを `automate` が確かめてから、この意図を言い換えて、組み込みの `automate` の下書きに書き込む。
 
-Read and follow `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for this run.
+この実行では、`.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` を読んで従う。
 
-Configuration source. Include this repository-relative path only when it is committed in the same target repository. Otherwise paraphrase the configured values. Never use a plugin source or cache path:
+設定の読み込み元。このリポジトリ相対パスは、同じ対象リポジトリにコミットされているときだけ含める。そうでなければ、設定した値を言い換えて書く。プラグインのソースのパスやキャッシュのパスは決して使わない。
 
 ```text
 {{BENNY_CONFIG_PATH}}
 ```
 
-Trigger:
+トリガー:
 
 ```json
 {
@@ -20,14 +20,14 @@ Trigger:
 }
 ```
 
-The creation intent should describe this as a new top-level report in the configured source Slack channel. It should include the configured repository, default branch, issue tracker, control adapter, feature map, and draft pull request capability.
+作成時の意図では、これを、設定した報告元の Slack チャンネルへのトップレベルの新しい報告として説明する。意図には、設定したリポジトリ、既定ブランチ、issue トラッカー、操作アダプター、機能マップと、ドラフトのプルリクエストを作れることを含める。
 
-Treat the source channel and root thread timestamp as immutable. If either is missing or does not match configuration, stop without posting.
+報告元のチャンネルとルートスレッドのタイムスタンプは、変わらない値として扱う。どちらかが欠けているか、設定と一致しないときは、投稿せずに止まる。
 
-Wait for a configured triage marker from the configured triage identity in this exact thread. Proceed only for `[benny:bug]` or `[benny:performance]`.
+まさにこのスレッドで、設定したトリアージのアカウントが付ける、設定済みのトリアージのマーカーを待つ。先に進むのは、`[benny:bug]` か `[benny:performance]` のときだけにする。
 
-Require the configured control-adapter skill before attempting a repro. Reproduce the exact discriminating symptom twice through the real UI. Verify existing pull requests or commits without authoring over them. Attempt a bounded fix only after a confirmed repro and the operational file's fix gate.
+再現を試みる前に、設定した操作アダプターのスキルがあることを必須にする。正常と異常を見分ける、報告どおりの症状を、実際の UI で 2 回再現する。既存のプルリクエストやコミットは、その上に自分の変更を書かずに検証する。範囲を限った修正を試みるのは、再現が確認でき、手順ファイルにある修正のゲートを通ってからに限る。
 
-The coordinator is the only Slack poster. Every child prompt must forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and all other Slack writes. Children return findings only.
+Slack に投稿するのはコーディネーターだけである。子エージェントへのプロンプトでは、必ず `SendSlackMessage`、`PostToSlack`、`chat.postMessage` をはじめ、Slack へのあらゆる書き込みを禁じる。子エージェントは、調べた結果だけを返す。
 
-Never post a root message in the source channel.
+報告元のチャンネルに決してルートメッセージを投稿しない。

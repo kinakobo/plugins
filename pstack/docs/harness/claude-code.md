@@ -1,68 +1,68 @@
-# pstack in Claude Code
+# Claude Code での pstack（pstack in Claude Code）
 
-pstack skills use Cursor names. In Claude Code, read this file once per session, then map each Cursor name in a skill with the tables below. `<pstack>` means the folder that holds `skills/` and `docs/`. If a Cursor field has no row, drop it and say so. Never pass a field or value the tool schema rejects.
+pstack のスキルは Cursor の名前を使う。Claude Code では、このファイルをセッションごとに 1 回読み、スキルに出てくる Cursor の名前を下の表で読み替える。`<pstack>` は `skills/` と `docs/` を含むフォルダを指す。Cursor のフィールドに対応する行がなければ、そのフィールドは渡さず、渡さなかったことをユーザーに伝える。ツールのスキーマが受け付けないフィールドや値は決して渡さない。
 
-## Tools
+## ツール（Tools）
 
 | Cursor | Claude Code |
 | --- | --- |
 | `Task` | `Agent` |
-| `AskQuestion` | `AskUserQuestion`. In `-p` mode it is absent, so ask in plain text. |
-| Open a todolist, or copy steps into the todolist tool | Use `TodoWrite` if the session offers it. Otherwise keep the list in your reply and update it at each phase. |
-| Run another pstack skill (`/name` or "the **name** skill") | `Read` `<pstack>/skills/<name>/SKILL.md` and follow it. The `Skill` tool refuses most pstack skills. When you tell the user to type it, write `/pstack:<name>`. |
-| `Grep`, `Glob` | `Bash` with `rg` when the session has no `Grep` or `Glob`. |
+| `AskQuestion` | `AskUserQuestion`。`-p` モードでは存在しないので、普通の文章で質問する。 |
+| todolist を開く、または手順を todolist ツールに写す | セッションに `TodoWrite` があれば使う。なければ一覧を返答の中に書き、フェーズごとに更新する。 |
+| 別の pstack スキルを実行する（Run another pstack skill。`/name` または「**name** スキル」） | `<pstack>/skills/<name>/SKILL.md` を `Read` で読み、それに従う。`Skill` ツールはほとんどの pstack スキルを拒否する。ユーザーに入力してもらうときは `/pstack:<name>` と書く。 |
+| `Grep`、`Glob` | セッションに `Grep` や `Glob` がなければ、`Bash` で `rg` を使う。 |
 
-## Subagent fields
+## サブエージェントのフィールド（Subagent fields）
 
 | Cursor | Claude Code |
 | --- | --- |
 | `subagent_type: generalPurpose` | `subagent_type: "general-purpose"` |
-| `poteto-agent`, `comment-sicko` | `pstack:poteto-agent`, `pstack:comment-sicko` |
-| The `model:` line in `poteto-agent`'s file | It holds a Cursor slug. Pass `model` and `effort` on every `Agent` call that spawns `pstack:poteto-agent`, mapped with the Models table, so that slug never reaches the API. |
-| `readonly: true` | `subagent_type: "Explore"`. It keeps `Bash`, so the brief also says "do not edit files", and you check `git status` afterward. |
-| `readonly: false` | `general-purpose`. It keeps the session's MCP servers. |
-| `environment: "cloud"` | `isolation: "worktree"`. Name the branch or commit the worker checks out. |
-| `environment: "local"` | Omit. |
-| `cloud_base_branch: <b>` | Tell the worker to check out `<b>` first. |
-| `run_in_background: true` | Omit. Subagents run in the background by default and notify you when they finish. |
-| `resume` | Spawn a new agent and paste the earlier result into its brief. |
-| `file_attachments` | List the paths in the brief. |
+| `poteto-agent`、`comment-sicko` | `pstack:poteto-agent`、`pstack:comment-sicko` |
+| `poteto-agent` のファイルにある `model:` の行 | Cursor の slug が書いてある。`pstack:poteto-agent` を起動する `Agent` の呼び出しには、毎回、モデル（Models）の表で読み替えた `model` と `effort` を渡し、その slug が API に届かないようにする。 |
+| `readonly: true` | `subagent_type: "Explore"`。`Bash` は使えるままなので、依頼文にも「ファイルを編集しない」と書き、終わったあとで `git status` を確かめる。 |
+| `readonly: false` | `general-purpose`。セッションの MCP サーバーを使えるままにする。 |
+| `environment: "cloud"` | `isolation: "worktree"`。ワーカーがチェックアウトするブランチかコミットを指定する。 |
+| `environment: "local"` | 渡さない。 |
+| `cloud_base_branch: <b>` | まず `<b>` をチェックアウトするようワーカーに指示する。 |
+| `run_in_background: true` | 渡さない。サブエージェントは既定でバックグラウンドで動き、終わると通知が来る。 |
+| `resume` | 新しいエージェントを起動し、前の結果を依頼文に貼る。 |
+| `file_attachments` | パスを依頼文に列挙する。 |
 
-## Models
+## モデル（Models）
 
 | Cursor | Claude Code |
 | --- | --- |
-| `claude-<family>-<version>-<effort>[-fast]`, such as `claude-opus-5-5-xhigh` | `model: "opus"` and `effort: "xhigh"`. `model` takes only `opus`, `sonnet`, `haiku`, `fable`. Drop `-fast`. |
-| A `gemini-*` or other non-Claude slug | Omit `model` so the agent runs on the session model, and say so. |
-| `auto` or `inherit-parent` | Omit `model`. |
-| The `pstack-models.mdc` rule, `~/.cursor/rules/pstack-models.mdc` | `~/.claude/rules/pstack-models.md`. Claude Code loads it into every new session, so its role lines are already in context. If they are not, read the file. If the file or the role's line is missing, use the skill's default slug. |
-| A role value `<model> <effort>`, such as `opus high` | `model: "opus"` and `effort: "high"`. |
+| `claude-<family>-<version>-<effort>[-fast]`（例: `claude-opus-5-5-xhigh`） | `model: "opus"` と `effort: "xhigh"`。`model` に渡せるのは `opus`、`sonnet`、`haiku`、`fable` だけである。`-fast` は落とす。 |
+| `gemini-*` などの Claude 以外の slug | `model` を渡さずにエージェントをセッションのモデルで動かし、そうしたことを伝える。 |
+| `auto` または `inherit-parent` | `model` を渡さない。 |
+| `pstack-models.mdc` のルール、`~/.cursor/rules/pstack-models.mdc` | `~/.claude/rules/pstack-models.md`。Claude Code は新しいセッションのたびにこのファイルを読み込むので、ロールの行はすでにコンテキストにある。なければファイルを読む。ファイルかそのロールの行がなければ、スキルの既定の slug を使う。 |
+| ロールの値 `<model> <effort>`（例: `opus high`） | `model: "opus"` と `effort: "high"`。 |
 
 ## setup-pstack
 
-Claude Code loads every `.md` file in `~/.claude/rules/` into each new session, so `setup-pstack` writes its rule there. Follow its steps with these changes:
+Claude Code は `~/.claude/rules/` にあるすべての `.md` ファイルを新しいセッションのたびに読み込むので、`setup-pstack` はルールをそこに書く。手順には次の変更を加えて従う。
 
-- Detect. The detected models are the `model` values that the `Agent` tool schema lists, each with an effort from its `effort` values. Write a real model as `<model> <effort>`, such as `opus xhigh`. The effort is the last token, so the budget step works as written.
-- Defaults. Map each default slug with the rows above: `claude-opus-5-5-xhigh-fast` is `opus xhigh`, `claude-opus-5-5-high-fast` is `opus high`, `claude-fable-5-2-high` is `fable high`, and `gemini-4-neon-xhigh` is `inherit-parent`.
-- Write. Write `~/.claude/rules/pstack-models.md` with no frontmatter, then the comment lines, the `# budget` line, and one line per role from step 5. Overwrite the whole file. Never put the role lines in `CLAUDE.md` or `AGENTS.md`.
+- 検出（Detect）。検出するモデルは、`Agent` ツールのスキーマが挙げる `model` の値であり、それぞれの effort は `effort` の値から選ぶ。実在のモデルは `<model> <effort>` の形（例: `opus xhigh`）で書く。effort が最後のトークンになるので、予算（budget）の手順は書かれたとおりに動く。
+- 既定値（Defaults）。既定の slug は上の行で読み替える。`claude-opus-5-5-xhigh-fast` は `opus xhigh`、`claude-opus-5-5-high-fast` は `opus high`、`claude-fable-5-2-high` は `fable high`、`gemini-4-neon-xhigh` は `inherit-parent` になる。
+- 書き込み（Write）。`~/.claude/rules/pstack-models.md` を frontmatter なしで書き、コメント行、`# budget` の行、手順 5 のロールごとの行を続ける。ファイル全体を上書きする。ロールの行を `CLAUDE.md` や `AGENTS.md` に書くことは決してしない。
 
-## Paths
-
-| Cursor | Claude Code |
-| --- | --- |
-| `.cursor/skills/`, `~/.cursor/skills/` | `.claude/skills/`, `~/.claude/skills/` |
-| `~/.cursor/plugins/`, `.cursor-plugin/plugin.json` | `~/.claude/plugins/`, `.claude-plugin/plugin.json` |
-| `.cursor/rules/*.mdc`, always-applied rules | `CLAUDE.md`, or `AGENTS.md` when no `CLAUDE.md` exists. Claude Code never reads `.mdc` files. The model rule is the exception. See Models. |
-| `https://github.com/cursor/plugins/blob/main/pstack/<path>` | `<pstack>/<path>` when that file exists. The plugin ships the skills, `docs/guide/`, and `README.md`. Read the local copy and never fetch it. Give the user the URL when they need a link. |
-| Transcripts in `~/.cursor/projects/<slug>/agent-transcripts/` | `~/.claude/projects/<slug>/<session>.jsonl`. The slug is the workspace path with each `/` and `.` changed to `-`, so `/Users/you/proj` is `-Users-you-proj`. The newest `.jsonl` directly in that folder is the current session. Its `<session>/subagents/` folder holds subagent transcripts. Read only this workspace's folder. |
-
-## Cursor-only features
-
-Claude Code has no Cursor Automations, Bugbot, Cursor cloud agents, or built-in PR tool. When a step needs one, put one line in your reply, `Skipped in Claude Code: <step>. <reason>.`, then go on to the next step. Do not stop, ask, or retry. When a later step needs what the skipped step made, such as a URL or a key, leave a placeholder and name it in the line.
+## パス（Paths）
 
 | Cursor | Claude Code |
 | --- | --- |
-| Cursor Automations: routines, `update_state` routine calls, `api2.cursor.sh/automations` webhooks, routine wakes, and `SendToUser` secret requests | Skip with the line. |
-| Bugbot | Bugbot comments on a GitHub PR are ordinary review threads, so triage them with the forge command that the step gives. Skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment. |
-| Cursor cloud agents | `environment: "cloud"` maps to a worktree, as in Subagent fields. Skip a step that needs the cloud agent itself, such as its dashboard status or its own machine. |
-| A built-in PR tool | Use the forge command that the step gives, such as `gh pr create`. That is not a skip, so write no line. |
+| `.cursor/skills/`、`~/.cursor/skills/` | `.claude/skills/`、`~/.claude/skills/` |
+| `~/.cursor/plugins/`、`.cursor-plugin/plugin.json` | `~/.claude/plugins/`、`.claude-plugin/plugin.json` |
+| `.cursor/rules/*.mdc`、常に適用されるルール（always-applied rules） | `CLAUDE.md`。`CLAUDE.md` がなければ `AGENTS.md`。Claude Code は `.mdc` ファイルを決して読まない。モデルのルールは例外である。モデル（Models）を参照。 |
+| `https://github.com/cursor/plugins/blob/main/pstack/<path>` | そのファイルがあれば `<pstack>/<path>`。プラグインはスキル、`docs/guide/`、`README.md` を同梱している。ローカルのコピーを読み、決して取得しにいかない。ユーザーがリンクを必要とするときは URL を渡す。 |
+| `~/.cursor/projects/<slug>/agent-transcripts/` にあるトランスクリプト | `~/.claude/projects/<slug>/<session>.jsonl`。slug はワークスペースのパスの `/` と `.` をそれぞれ `-` に変えたもので、`/Users/you/proj` なら `-Users-you-proj` になる。そのフォルダの直下にある最新の `.jsonl` が現在のセッションである。その `<session>/subagents/` フォルダにサブエージェントのトランスクリプトがある。読むのはこのワークスペースのフォルダだけにする。 |
+
+## Cursor 専用の機能（Cursor-only features）
+
+Claude Code には、Cursor Automations、Bugbot、Cursor の cloud agent、組み込みの PR ツール（built-in PR tool）がない。手順がこれらを必要とするときは、返答に `Skipped in Claude Code: <step>. <reason>.` という 1 行を書いて、次の手順に進む。止まったり、質問したり、やり直したりしない。飛ばした手順が作るはずだったもの（URL やキーなど）をあとの手順が必要とするときは、プレースホルダーを置き、その行でプレースホルダーの名前を挙げる。
+
+| Cursor | Claude Code |
+| --- | --- |
+| Cursor Automations: ルーチン、`update_state` によるルーチンの呼び出し、`api2.cursor.sh/automations` の webhook、ルーチンの起動、`SendToUser` による秘密情報の要求 | 上の 1 行を書いて飛ばす。 |
+| Bugbot | GitHub の PR に Bugbot が付けたコメントは普通のレビューのスレッドなので、手順が示すフォージのコマンドでトリアージする。Bugbot を起動する・待つ・設定する手順は、PR に Bugbot のチェックもコメントもなければ飛ばす。 |
+| Cursor の cloud agent | `environment: "cloud"` は、サブエージェントのフィールド（Subagent fields）のとおり worktree に読み替える。cloud agent そのもの（ダッシュボードの状態や専用のマシンなど）が必要な手順は飛ばす。 |
+| 組み込みの PR ツール（built-in PR tool） | 手順が示すフォージのコマンド（`gh pr create` など）を使う。これは飛ばしではないので、1 行は書かない。 |

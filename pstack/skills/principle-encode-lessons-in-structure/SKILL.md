@@ -1,11 +1,11 @@
 ---
 name: principle-encode-lessons-in-structure
-description: "Apply when you catch yourself writing the same instruction a second time, or notice a recurring correction. Encode the rule as a lint, metadata flag, runtime check, or script instead of more text."
+description: "同じ指示を 2 度目に書いていると気づいたとき、または同じ訂正が繰り返されていると気づいたときに適用する。文章を足すのではなく、規則を lint、メタデータのフラグ、実行時のチェック、スクリプトとして埋め込む。"
 disable-model-invocation: true
 ---
 
-# Encode Lessons in Structure
+# 教訓を構造に埋め込む（Encode Lessons in Structure）
 
-If the lesson needs judgment and cannot be encoded, make the instruction more prominent and add an example of the failure mode.
+教訓が判断を要し、構造に埋め込めないなら、指示を目立たせ、失敗のパターンの例を添える。
 
-**Corollary:** If the fix is structural, only use the structural fix. The instruction is the symptom.
+**系:** 修正が構造的なものなら、構造的な修正だけを使う。指示は症状にすぎない。

@@ -1,43 +1,43 @@
 ---
 name: ketchup
-description: "Catch the user up on what changed in this chat since their last message, in plain words and small visuals. List every item waiting on them with what they need to decide it from the reply alone. Use for /ketchup."
+description: "ユーザーの最後のメッセージ以降にこのチャットで変わったことを、平易な言葉と小さなビジュアルで伝えて、ユーザーを追いつかせる。ユーザーを待っている項目をすべて挙げ、返答だけで決められるだけの情報を添える。/ketchup で使う。"
 disable-model-invocation: true
 ---
 
 # Ketchup
 
-Catch the user up on what changed in this chat since the last message they wrote before `/ketchup`, and help them understand each change, not only where it stands. Then lay out every call waiting on them so they can make it from your reply alone. Notifications and subagent results are not their messages. Assume the user remembers their last message and nothing after it.
+ユーザーが `/ketchup` の前に書いた最後のメッセージ以降に、このチャットで変わったことを伝えてユーザーを追いつかせ、各変更がいまどうなっているかだけでなく、その中身も理解できるようにする。そのうえで、ユーザーの判断を待っているものをすべて示し、返答だけで判断できるようにする。通知やサブエージェントの結果は、ユーザーのメッセージではない。ユーザーは自分の最後のメッセージを覚えていて、それ以降のことは何も覚えていないと考える。
 
-Use [`/bro`](../bro/SKILL.md)'s voice, not its task: plain words, short sentences, no jargon, like one person catching up another. Say what changed for the user, not how you did it. Say "the tests pass", not "CI is green". Leave out hashes, file paths, commands, build numbers, and test counts unless the user needs one to act. Call each PR, branch, or agent by a name the user would know, not by a label you invented. If a fact needs context to make sense, give the context or leave the fact out.
+[`/bro`](../bro/SKILL.md) の口調を使い、その仕事は使わない。平易な言葉、短い文、専門用語なしで、ある人が別の人に近況を伝えるように書く。どうやったかではなく、ユーザーにとって何が変わったかを言う。「CI がグリーン」ではなく「テストが通る」と言う。ユーザーが行動するのに必要でない限り、ハッシュ、ファイルパス、コマンド、ビルド番号、テストの件数は省く。PR、ブランチ、エージェントは、自分で作ったラベルではなく、ユーザーが知っている名前で呼ぶ。ある事実が文脈なしでは意味をなさないなら、文脈を添えるか、その事実を省く。
 
-## Gather what changed
+## 変わったことを集める（Gather what changed）
 
-Keep this turn read-only. Make visuals only from what you already have: do not change code, start an app or a job, or post anything. Collect your own work since that message, reports from subagents, and messages from anyone else in this chat. Check the current state of each PR, CI run, or agent this chat touched. Check each number you will show against the facts it comes from, and say so when you correct one.
+このターンは読み取り専用にする。ビジュアルは手元にあるものだけから作る。コードを変えたり、アプリやジョブを起動したり、何かを投稿したりしない。そのメッセージ以降の自分の作業、サブエージェントからの報告、このチャットのほかの誰かからのメッセージを集める。このチャットが触れた PR、CI の実行、エージェントのそれぞれについて、現在の状態を確かめる。示す数値はそれぞれ、元になった事実と照らし合わせ、訂正したときはそう言う。
 
-An action item is a call or step only the user can take, such as a product choice, an approval, an irreversible action, or access you lack. Include any still waiting on the user, even one raised before their last message. Work you can still do yourself is not an action item. Never make up a call to fill the reply. A step the user did not ask for and the work does not need is not an action item, unless it is irreversible and waiting on the user: give it one line and no visual.
+アクションアイテムとは、ユーザーにしかできない判断や手順のことである。たとえば、プロダクトの選択、承認、取り消せない操作、自分に無いアクセス権がそれにあたる。ユーザーを待っているものは、最後のメッセージより前に挙がったものでもすべて含める。自分でまだできる作業は、アクションアイテムではない。返答を埋めるために判断を作り出すことは、決してしない。ユーザーが頼んでおらず、作業にも必要ない手順は、アクションアイテムではない。ただし、取り消せない手順がユーザーを待っているときは例外で、1 行で書き、ビジュアルは付けない。
 
-One call can cover many items, such as each PR in a set awaiting merge. For each item, collect its link, what it changes for users, the evidence behind your pick, its risk, and your pick. Write "unknown" for a fact the call needs that you do not know. Leave out a link you do not have.
+1 つの判断が多くの項目にまたがることがある。たとえば、マージを待つ一連の PR のそれぞれである。各項目について、リンク、ユーザーにとって何が変わるか、推奨の根拠となる証拠、リスク、推奨を集める。判断に必要だが分からない事実には「不明」と書く。持っていないリンクは省く。
 
-## Write the reply
+## 返答を書く（Write the reply）
 
-Spend words on the calls, not on the story. Keep what happened under 100 words, not counting pictures, and shorter when less happened. Leave out work that changed nothing for the user. Give each item about 30 words. The reply grows with the number of items: two items need well under 150 words in all, not counting pictures, and thirty need far more. Never cut items or shrink them to stay under a word count: no count in place of a list, and no link in place of an item. A link can add depth, but the reply alone must be enough to decide.
+言葉は経緯ではなく判断に使う。起きたことは、画像を除いて 100 語未満に収め、起きたことが少なければもっと短くする。ユーザーにとって何も変えなかった作業は省く。各項目には 30 語ほどを充てる。返答は項目の数に応じて長くなる。項目が 2 つなら、画像を除いて全体で 150 語を十分に下回る長さになり、30 個なら、はるかに長くなる。語数に収めるために、項目を削ったり縮めたりは決してしない。リストの代わりに件数を書いたり、項目の代わりにリンクを置いたりしない。リンクで詳しい情報を補ってよいが、返答だけで判断できなければならない。
 
-Open with one short sentence that names what waits on the user, or says nothing does. The action items give the detail. If nothing happened and nothing waits on the user, say so and stop.
+最初に、ユーザーを待っているものを挙げるか、待っているものは無いと言う短い 1 文を置く。詳細はアクションアイテムで示す。何も起きておらず、ユーザーを待っているものも無ければ、そう言って終える。
 
-Then show what happened, pictures first. Embed inline the screenshots and videos the work produced, then any diagram that explains a change. Then sum up in one short bullet per thing the user asked for: what came of it, and whether it is done, still running, failed, or not checked. Write each line the way you would say it out loud: "Search was slow from a missing index", not "Search review: done" or "Slow search: missing index". Name any bug found and fixed on the way. Each line must stay true when read alone. Never mark something done that still waits on the user, and leave out anything the action items say. Under the summary, give at most three short lines that change what the user knows or must do. Then name in one line any work left that you can do yourself.
+次に、起きたことを画像から先に示す。作業で得たスクリーンショットと動画をインラインで埋め込み、次に、変更を説明する図があればそれを置く。そのあと、ユーザーが頼んだことごとに短い箇条を 1 つずつ書いてまとめる。何が得られたか、そして完了、実行中、失敗、未確認のどれかを書く。各行は、声に出して言うように書く。「検索のレビュー: 完了」や「遅い検索: インデックス欠落」ではなく、「インデックスが無かったせいで検索が遅かった」と書く。途中で見つけて直したバグがあれば挙げる。各行は、単独で読んでも正しくなければならない。ユーザーをまだ待っているものを決して完了と書かず、アクションアイテムに書くことは省く。まとめの下に、ユーザーが知っていることや、しなければならないことを変える短い行を、多くとも 3 行置く。次に、自分でまだできる残りの作業を 1 行で挙げる。
 
-Then list the action items. Ask the call the user owns, such as merge, approve, or pick, and give your pick. A step you would take first goes in your pick. So does anything that must happen first, and anything that cannot be undone. Give the number or link of each PR, issue, or agent a call is about, also in a call between options.
+次に、アクションアイテムを並べる。マージ、承認、選択など、ユーザーが担う判断を尋ね、推奨を示す。自分が先に行う手順は、推奨の中に書く。先に済ませなければならないことと、取り消せないことも同様である。判断の対象となる PR、issue、エージェントは、選択肢のあいだの判断であっても、それぞれ番号かリンクを示す。
 
-Fit the shape to the call. A call about one item is one bullet: the call, your pick, what it changes for users, the evidence behind your pick, and its risk, with the item named once. When items share a call, write the call and your pick once, then give each item its own bullet, riskiest first: its link and name, what it changes for users, the evidence behind your pick, and its risk. Name an item's pick only where it differs from the call's. Give each item's risk even when it is low, such as "Low risk: only the colors change." Say what waiting costs only when it is more than a delay, such as a deadline or lost data.
+形は判断に合わせる。1 つの項目についての判断は、1 つの箇条にする。判断、推奨、ユーザーにとって何が変わるか、推奨の根拠となる証拠、リスクを書き、項目の名前は 1 回だけ出す。複数の項目が 1 つの判断を共有するときは、判断と推奨を 1 回だけ書き、そのあと各項目に箇条を 1 つずつ、リスクの高い順に設ける。各箇条には、リンクと名前、ユーザーにとって何が変わるか、推奨の根拠となる証拠、リスクを書く。項目ごとの推奨は、判断全体の推奨と違うときだけ書く。リスクが低くても、各項目のリスクを書く（例: 「リスクは低い。色が変わるだけ。」）。待つことの代償は、締め切りやデータの消失のように、単なる遅れを超えるときだけ書く。
 
-For a call between options, give every option the work weighed, each with what it gets the user and what it costs, and the current state when there is one. Those costs are the call's risk, so add no separate risk line. When the screenshots above show the options, write each option's gain and cost under its screenshot.
+選択肢のあいだの判断では、作業の中で比較したすべての選択肢を、それぞれユーザーが得るものと代償、現在の状態があればその状態とともに示す。その代償が判断のリスクにあたるので、リスクの行は別に足さない。上のスクリーンショットに選択肢が写っているときは、各選択肢の得るものと代償を、そのスクリーンショットの下に書く。
 
-## Visuals
+## ビジュアル（Visuals）
 
-A visual is a picture: a screenshot, a video, a Mermaid diagram, a chart or diagram from `/visualize`, or a generated image. A Markdown table is not a visual, even with before and after columns.
+ビジュアルとは画像のことで、スクリーンショット、動画、Mermaid の図、`/visualize` によるチャートや図、生成した画像を指す。Markdown の表は、変更前と変更後の列があっても、ビジュアルではない。
 
-When something is easier to grasp as a picture than as sentences, draw it: how a design or system works, a PR stack or dependency chain with each PR's state, a before and after of a fix, or options side by side. Never draw a status list, a list of action items, or boxes with nothing connecting them. Never give a fact twice, in text or across visuals.
+文章より画像のほうが把握しやすいものは、図にする。たとえば、設計やシステムの仕組み、各 PR の状態を添えた PR のスタックや依存の連鎖、修正の前後、並べた選択肢である。ステータスの一覧、アクションアイテムの一覧、何もつながっていない箱の並びは、決して図にしない。同じ事実を、本文でもビジュアルどうしでも、決して 2 回示さない。
 
-Keep each visual small enough to read at a glance: at most six boxes, with at most eight words in each. Write labels as plain words a person would say, not tags like "Tests: pass". A fact that needs a sentence belongs in the text, or nowhere.
+各ビジュアルは、一目で読める小ささに保つ。箱は多くとも 6 個、各箱の語は多くとも 8 語にする。ラベルは、「テスト: 合格」のようなタグではなく、人が口にする平易な言葉で書く。1 文が必要な事実は本文に書くか、どこにも書かない。
 
-Embed screenshots and videos inline when the change is visible, not only as links. If a visible change has none, mark its summary line "No screenshot yet," and say there what changed on screen. Draw diagrams and charts from facts you have: a Mermaid diagram for how things connect and a `/visualize` chart for numbers. Never invent a number, and never draw or generate a picture of a screen you did not capture. Link only artifacts that exist.
+変更が目に見えるものなら、スクリーンショットと動画は、リンクだけでなくインラインで埋め込む。目に見える変更にスクリーンショットも動画も無ければ、そのまとめの行に「スクリーンショットはまだ無い」と書き、画面で何が変わったかをそこに書く。図とチャートは、手元にある事実から描く。つながりには Mermaid の図を、数値には `/visualize` のチャートを使う。決して数値を作り出さず、キャプチャしていない画面の画像を決して描いたり生成したりしない。リンクは、存在する成果物にだけ張る。

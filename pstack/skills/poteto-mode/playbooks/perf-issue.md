@@ -1,25 +1,25 @@
-### Perf issue
+### 性能問題（Perf issue）
 
-**You own the measurement story. Plan, review, verify the numbers.** Tie every fix to a measurement, don't read source instead of measuring.
+**計測の筋道に責任を持つ。計画し、レビューし、数値を検証する。** すべての修正を計測に結びつける。計測の代わりにソースを読んで済ませない。
 
-1. Capture a baseline trace via the matching control skill. Vet the baseline, and each later number, with the **benchmark-checklist** skill.
-2. Trace the code to ground hypotheses. Don't claim a perf ceiling without running it first.
-   Try the performance mantras in order, cheapest first:
-   1. Don't do it. Stop work whose result nothing uses rather than cheapening it.
-   2. Do it, but don't do it again.
-   3. Do it less.
-   4. Do it later.
-   5. Do it when they're not looking.
-   6. Do it concurrently.
-   7. Do it cheaper.
+1. 対応する操作スキル（control skill）で、ベースラインのトレースを取る。ベースラインと、その後に得る各数値は、**benchmark-checklist** スキルで吟味する。
+2. コードを追って仮説の根拠を固める。実際に動かす前に、性能の上限を主張しない。
+   性能のマントラ（performance mantras）を、安いものから順に試す。
+   1. やらない。結果がどこでも使われない処理は、安くするのではなく止める。
+   2. やるが、二度はやらない。
+   3. やる量を減らす。
+   4. 後でやる。
+   5. 見られていないときにやる。
+   6. 並行してやる。
+   7. より安くやる。
 
-   When an earlier mantra meets the target, stop.
-3. Plan the fix from the trace. If it crosses a function boundary, `architect` first. Delegate implementation to a subagent using your configured perf-issue model (default `claude-opus-5-5-xhigh-fast`). Pick each subagent's reasoning level for the job, per the Subagents section. Review the diff. Capture a post-fix trace.
-   Apply the **sequence-verifiable-units** principle skill, verifying each attempt before trying the next.
-4. Parse and compare the artifacts (JSON to sqlite, diff). "Inconclusive" or wrong-surface is not a pass. Flag it.
-5. Cite the measurement in the PR.
-6. Run **Opening a PR**.
+   前のほうのマントラで目標に届いたら、そこで止める。
+3. トレースをもとに修正を計画する。修正が関数の境界をまたぐなら、先に `architect` を使う。実装は、設定した perf-issue のモデル（既定は `claude-opus-5-5-xhigh-fast`）でサブエージェントに委任する。各サブエージェントの推論のレベルは、サブエージェント（Subagents）の節に従い、仕事に合わせて選ぶ。差分をレビューする。修正後のトレースを取る。
+   **sequence-verifiable-units** 原則スキルを適用し、次の試みに移る前に、各試みを検証する。
+4. 成果物を解析して比べる（JSON を sqlite に入れる、差分を取る）。「結論が出ない」結果や、別の画面での結果は合格ではない。そう明示する。
+5. PR に計測結果を引用する。
+6. **PR を開く（Opening a PR）** を実行する。
 
-For sustained improvement against a metric rather than a one-off fix, use the Hillclimb playbook (`playbooks/hillclimb.md`).
+一度きりの修正ではなく、指標に対して継続的に改善するなら、山登り（Hillclimb）のプレイブック（`playbooks/hillclimb.md`）を使う。
 
-**Reply:** baseline number, post-fix number, delta, artifact path.
+**返答：** ベースラインの数値、修正後の数値、差、成果物のパス。

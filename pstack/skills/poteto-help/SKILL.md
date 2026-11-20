@@ -1,162 +1,162 @@
 ---
 name: poteto-help
-description: Guides users through pstack setup, /poteto-mode, and picking the skill, playbook, or principle for a task. Type /poteto-help with a question.
+description: pstack のセットアップ、/poteto-mode の使い方、タスクに合うスキル・プレイブック・原則の選び方を案内する。/poteto-help に続けて質問を入力する。
 disable-model-invocation: true
 ---
 
-# Poteto help
+# Poteto のヘルプ（Poteto help）
 
-Answer the user's question about pstack, hand them a prompt they can send, and link the file the answer came from. For a help question, don't start the work. The user asked how, and a pstack run spends real tokens, so let them send the prompt.
+pstack についてのユーザーの質問に答え、そのまま送れるプロンプトを渡し、答えの出どころのファイルへのリンクを示す。ヘルプの質問では、作業を始めない。ユーザーはやり方を尋ねたのであり、pstack の実行は実際にトークンを消費するので、プロンプトはユーザー自身に送ってもらう。
 
-A message that asks for work, such as "use pstack to fix this bug", is not a help question. Read [`poteto-mode`](../poteto-mode/SKILL.md), do the work under it, and mention once that a Custom Mode keeps it on.
+「pstack でこのバグを直して」のように作業を頼むメッセージは、ヘルプの質問ではない。[`poteto-mode`](../poteto-mode/SKILL.md) を読み、それに従って作業し、Custom Mode にすれば有効なまま保てることを一度だけ伝える。
 
-This file maps questions to the skills and guide pages that hold the answers. Those files own the details. Read the file you route to before you quote it, and trust it when it disagrees with this map. The links here point into the installed plugin, which the user may not be able to open, so give the user the file's public copy: `https://github.com/cursor/plugins/blob/main/pstack/` followed by its path.
+このファイルは、質問を、答えが書いてあるスキルとガイドのページに対応づける。詳細はそれらのファイルが受け持つ。案内する先のファイルは、引用する前に読み、この対応表と食い違うときはそのファイルを信じる。ここのリンクはインストールされたプラグインの中を指しており、ユーザーには開けないことがあるので、ユーザーにはそのファイルの公開版を渡す。公開版の URL は、`https://github.com/cursor/plugins/blob/main/pstack/` にそのパスを続けたものである。
 
-## Find out what they need
+## 何が必要かを見極める（Find out what they need）
 
-Infer the need from the message and the conversation. A named situation, such as "which skill reviews a PR?", goes straight to its section. If the need is still unclear, ask one multiple-choice question with these options, then answer only the section they pick:
+メッセージと会話から、必要なものを推し量る。「PR をレビューするのはどのスキル？」のように状況がはっきりしていれば、その節に直行する。それでも分からなければ、次の選択肢で選択式の質問を 1 つだけし、選ばれた節だけに答える。
 
-- Get set up
-- Start a task with `/poteto-mode`
-- Pick a skill for a situation
-- Fix a run that went wrong
-- Make pstack my own
+- セットアップする
+- `/poteto-mode` でタスクを始める
+- 状況に合うスキルを選ぶ
+- うまくいかなかった実行を直す
+- pstack を自分用にする
 
-Check the state that changes the answer, and mention it only when it does:
+答えを左右する状態を確かめ、答えが変わるときだけそれを伝える。
 
-- No `~/.cursor/rules/pstack-models.mdc` means `/setup-pstack` hasn't run for this user, so every role uses its default model.
-- No `verify-*` skill or other app harness in the project means agents have no scripted way to drive the app. Mention `/create-verification-skill` when the question is about proving a change works.
-- No formal verification skill in the project means no property is checked past what tests reach. Mention `/create-formal-verification-skill` when the question is about a race, an invariant, or another case tests rarely hit. When one exists and the code it covers changed after the commit it records as last in sync, mention `/maintain-formal-verification-skill` if the question touches that code.
+- `~/.cursor/rules/pstack-models.mdc` がなければ、このユーザーはまだ `/setup-pstack` を実行していないので、どのロールも既定のモデルを使う。
+- プロジェクトに `verify-*` スキルやほかのアプリ用のハーネスがなければ、エージェントにはアプリをスクリプトで操作する手段がない。質問が、変更が動くことの証明についてなら、`/create-verification-skill` を紹介する。
+- プロジェクトに形式検証のスキルがなければ、テストが届く範囲を超えて検査される性質はない。質問が競合状態、不変条件、そのほかテストではめったに当たらないケースについてなら、`/create-formal-verification-skill` を紹介する。形式検証のスキルがあり、最後に同期したと記録しているコミットより後に対象のコードが変わっていて、質問がそのコードに関わるなら、`/maintain-formal-verification-skill` を紹介する。
 
-When the model rule is missing and it matters, ask whether the user wants to pick a model for each role and a reasoning budget now. It matters when the user is new, the question is about setup or cost, or the answer depends on which models run. Ask at most once per chat. If the need is also unclear, ask both questions together. Offer two choices:
+モデルのルールがなく、それが答えに関わるときは、ロールごとのモデルと推論の予算をいま選びたいかをユーザーに尋ねる。関わるのは、ユーザーが初めて使うとき、質問がセットアップか費用についてのとき、どのモデルが動くかで答えが変わるときである。尋ねるのは 1 つのチャットにつき 1 回までにする。必要なものも分からないときは、2 つの質問をまとめて尋ねる。選択肢は 2 つ示す。
 
-- Now: give them `/setup-pstack` to type, and answer their question too.
-- Later: answer their question, and add one line saying every role keeps its default model until they run `/setup-pstack`.
+- 今すぐ：入力する `/setup-pstack` を渡し、質問にも答える。
+- 後で：質問に答え、`/setup-pstack` を実行するまではどのロールも既定のモデルのままだと 1 行添える。
 
-## Get set up
+## セットアップする（Get set up）
 
-1. Install with `/add-plugin pstack` in chat, or from Customize in the sidebar.
-2. Run [`/setup-pstack`](../setup-pstack/SKILL.md). It asks for a reasoning budget, maps a model to each role, and writes a rule. The rule applies to new chats. Then it offers once each to generate a verification skill and a formal verification skill for the project, unless the project already has one.
-3. Start a real task with `/poteto-mode`, a goal, and a check that can pass or fail.
+1. チャットで `/add-plugin pstack` を実行するか、サイドバーの Customize からインストールする。
+2. [`/setup-pstack`](../setup-pstack/SKILL.md) を実行する。推論の予算を尋ね、ロールごとにモデルを割り当て、ルールを書く。ルールは新しいチャットから適用される。その後、プロジェクトに検証スキルと形式検証のスキルがまだなければ、それぞれを生成するかを一度ずつ提案する。
+3. `/poteto-mode` に、目標と、合否のつく確認を付けて、実際のタスクを始める。
 
-Installing changes nothing until the user invokes a skill. Only `/setup-pstack` loads from the user's words. The [README](../../README.md) and [guide page 1](../../docs/guide/01-setup.md) have the details. Offer to word their first prompt with them, per [`references/prompting.md`](references/prompting.md).
+インストールしただけでは、ユーザーがスキルを呼び出すまで何も変わらない。ユーザーの言葉から読み込まれるのは `/setup-pstack` だけである。詳しくは [README](../../README.md) と [ガイドの 1 ページ目](../../docs/guide/01-setup.md) にある。[`references/prompting.md`](references/prompting.md) に従い、最初のプロンプトの文面を一緒に考えることを申し出る。
 
-If cost is the worry, say where the tokens go and how to spend fewer. pstack spends extra tokens on subagents and review panels. Rerun `/setup-pstack` and pick a smaller budget or cheaper models. A role set to `auto` or `inherit-parent` runs on the chat's model, which saves tokens when the chat runs on Auto or a cheaper model. A shorter panel list runs fewer subagents, one for each entry. Save `/poteto-mode` for work that needs rigor.
+費用が心配なら、トークンが何に使われ、どうすれば減らせるかを伝える。pstack は、サブエージェントとレビューのパネルに余分なトークンを使う。`/setup-pstack` をもう一度実行し、小さい予算か安いモデルを選ぶ。`auto` か `inherit-parent` を設定したロールはチャットのモデルで動くので、チャットが Auto か安いモデルで動いていればトークンを節約できる。パネルの一覧を短くすれば、起動するサブエージェントが減る（1 項目につき 1 つ）。`/poteto-mode` は、厳密さが必要な作業のためにとっておく。
 
-pstack is built for Cursor, and it also installs in Claude Code with `/plugin marketplace add cursor/plugins`, then `/plugin install pstack@cursor-plugins`. There, each command takes a `pstack:` prefix, such as `/pstack:poteto-mode`. The [Claude Code adapter](../../docs/harness/claude-code.md) maps the Cursor names, and a step that needs a Cursor-only feature, such as Bugbot or Automations, is skipped with a one-line note.
+pstack は Cursor 向けに作られているが、Claude Code にも `/plugin marketplace add cursor/plugins` の後に `/plugin install pstack@cursor-plugins` でインストールできる。Claude Code では、各コマンドに `pstack:` の接頭辞が付く（`/pstack:poteto-mode` など）。[Claude Code のアダプター](../../docs/harness/claude-code.md) が Cursor の名前を対応づけ、Bugbot や Automations のような Cursor だけの機能が必要な手順は、1 行の注記を残して飛ばされる。
 
-Other tools can read the skills, because they use the Agent Skills format. But most workflow skills, including `/poteto-mode`, `/how`, and `/teach`, spawn Cursor subagents, some with per-role models, and Custom Modes and `/loop` are Cursor features, so those parts may not work there.
+スキルは Agent Skills の形式なので、ほかのツールでも読める。ただし、`/poteto-mode`、`/how`、`/teach` を含むほとんどのワークフローのスキルは Cursor のサブエージェントを起動し、その一部はロールごとのモデルを使う。また、Custom Mode と `/loop` は Cursor の機能である。そのため、これらの部分はほかのツールでは動かない可能性がある。
 
-## Start a task with `/poteto-mode`
+## `/poteto-mode` でタスクを始める（Start a task with `/poteto-mode`）
 
-`/poteto-mode` matches the task to a playbook, copies the playbook's steps into the todo list, and runs the other skills as the steps need them. A good prompt states the goal and how to tell it's done. It doesn't list skills, because a hand-written sequence tends to drop or reorder steps the playbook would keep. Read [`references/prompting.md`](references/prompting.md) before you help word one. [Guide page 2](../../docs/guide/02-poteto-mode.md) has examples.
+`/poteto-mode` は、タスクに合うプレイブックを選び、その手順を todo list に写し、手順が必要とするときにほかのスキルを実行する。良いプロンプトは、目標と、完了をどう判定するかを書く。スキルは列挙しない。手で書いた順序では、プレイブックなら守るはずの手順が抜けたり入れ替わったりしやすいからである。プロンプトの文面づくりを手伝う前に、[`references/prompting.md`](references/prompting.md) を読む。例は [ガイドの 2 ページ目](../../docs/guide/02-poteto-mode.md) にある。
 
-Whether `/poteto-mode` stays on depends on how the user starts it:
+`/poteto-mode` が有効なまま続くかどうかは、ユーザーがどう始めたかで決まる。
 
-- Enter on `/poteto-mode` attaches the skill to one message. It fades as the chat moves on.
-- Option+Enter on Mac or Alt+Enter on Windows, or Use as Mode from the skill entry, makes it a Custom Mode. It stays in context every turn until the user exits the mode, and it stays out of casual turns.
-- Cursor's docs list Custom Modes in the Agents Window and the CLI. Elsewhere, start each new task with `/poteto-mode`.
+- `/poteto-mode` で Enter を押すと、スキルはその 1 つのメッセージに付く。チャットが進むにつれて、その影響は薄れていく。
+- Mac で Option+Enter、Windows で Alt+Enter を押すか、スキルの項目から Use as Mode を選ぶと、Custom Mode になる。ユーザーがモードを抜けるまで毎ターンのコンテキストに残り、気軽なやりとりのターンには関わらない。
+- Cursor のドキュメントでは、Custom Mode が使えるのは Agents Window と CLI とされている。それ以外では、新しいタスクのたびに `/poteto-mode` で始める。
 
-Link [Cursor's skills docs](https://cursor.com/docs/skills) when this comes up. Mid-chat, "new task" makes the mode match a fresh playbook. `/poteto-mode` already uses `poteto-agent` for the subagents its playbook steps spawn. To get the same style from a subagent of your own, spawn it with `subagent_type: "poteto-agent"`.
+この話題になったら、[Cursor のスキルのドキュメント](https://cursor.com/docs/skills) へのリンクを示す。チャットの途中で「new task」（新しいタスク）と言うと、モードはプレイブックを選び直す。`/poteto-mode` は、プレイブックの手順が起動するサブエージェントに、すでに `poteto-agent` を使っている。自分で起動するサブエージェントでも同じスタイルにしたいなら、`subagent_type: "poteto-agent"` を指定して起動する。
 
-## Pick a skill
+## スキルを選ぶ（Pick a skill）
 
-The default answer is `/poteto-mode`, which runs most of the others when its steps need them. Name a skill directly when the user wants more or less of something than the playbook gives. Read the skill before you recommend it, and give one example prompt.
+既定の答えは `/poteto-mode` である。手順が必要とするときに、ほかのスキルの大半を実行するからである。ユーザーが何かをプレイブックより多く、または少なく求めるときは、スキルを直接名指しする。勧める前にそのスキルを読み、プロンプトの例を 1 つ示す。
 
-| The user wants to | Skill |
+| ユーザーがしたいこと | スキル |
 |---|---|
-| Do any non-trivial task with rigor | [`/poteto-mode`](../poteto-mode/SKILL.md) |
-| Check that the agent understood their goal and the problem before it starts | [`/in-your-own-words`](../in-your-own-words/SKILL.md) |
-| Get a prompt rewritten deeper, not bigger, before sending it: what a top professional would add, their raw material and methods, and an outside check. It returns the prompt and doesn't do the task | [`/sharpen`](../sharpen/SKILL.md) |
-| Know how code works now, or where new code should live | [`/how`](../how/SKILL.md) |
-| Know why code is shaped this way, or where a number came from | [`/why`](../why/SKILL.md) |
-| Understand a change or subsystem, explained plainly | [`/teach`](../teach/SKILL.md) |
-| Catch up on their own recent work on a topic | [`/recall`](../recall/SKILL.md) |
-| Catch up on what changed in this chat since their last message, in plain words and small visuals, with every item waiting on them listed and decidable from the reply alone | [`/ketchup`](../ketchup/SKILL.md) |
-| Catch up like `/ketchup`, in a short subtitled video of slides, with the waiting calls as text under it | [`/ketchup-video`](../ketchup-video/SKILL.md) |
-| Know what a small diff could break outside itself | [`/blast-radius`](../blast-radius/SKILL.md) |
-| Settle types and module shape before code that crosses a function boundary | [`/architect`](../architect/SKILL.md) |
-| Get several attempts at one brief, merged into the best one | [`/arena`](../arena/SKILL.md) |
-| Run parallel checks over slices, or race workers, as cloud agents | [`/swarm`](../swarm/SKILL.md) |
-| Have different models review a diff and try to break it | [`/interrogate`](../interrogate/SKILL.md) |
-| Fix a bug test-first when a cheap local test exists | [`/tdd`](../tdd/SKILL.md) |
-| Apply TypeScript rules to `.ts` or `.tsx` work | [`/typescript-best-practices`](../typescript-best-practices/SKILL.md) |
-| Strip comments before review, using a reviewer that didn't write them | [`/no-comments`](../no-comments/SKILL.md) |
-| Clean AI tells out of prose | [`/unslop`](../unslop/SKILL.md) |
-| Write docs, an RFC, a README, a PR description, or a commit message to a standard | [`/technical-writing`](../technical-writing/SKILL.md) |
-| Hear the last reply again in plain words | [`/bro`](../bro/SKILL.md) |
-| Give agents a scripted way to drive the app and prove behavior | [`/create-verification-skill`](../create-verification-skill/SKILL.md) |
-| Bring a verification skill and its feature map back in line with the app | [`/maintain-verification-skill`](../maintain-verification-skill/SKILL.md) |
-| Formally verify a race, invariant, or other property that tests rarely reach | [`/create-formal-verification-skill`](../create-formal-verification-skill/SKILL.md) |
-| Bring a formal verification back in line after the code it covers changed, and learn whether a failure is drift or a bug | [`/maintain-formal-verification-skill`](../maintain-formal-verification-skill/SKILL.md) |
-| Show a PM or designer what the user sees as a chart checked by a TLA+ model, with the shortest path to each state that breaks a rule | [`/statechart`](../statechart/SKILL.md) |
-| Vet a performance number before reporting or acting on it | [`/benchmark-checklist`](../benchmark-checklist/SKILL.md) |
-| Run a large or cross-cutting change, or one to review after stepping away | [`/figure-it-out`](../figure-it-out/SKILL.md) |
-| Keep a decision log during a run, and review it afterward | [`/show-me-your-work`](../show-me-your-work/SKILL.md) |
-| Pick a model for each role and a reasoning budget | [`/setup-pstack`](../setup-pstack/SKILL.md) |
-| Turn their own working habits into a personal mode skill | [`/automate-me`](../automate-me/SKILL.md) |
-| Turn what a finished task taught into skill edits | [`/reflect`](../reflect/SKILL.md) |
-| Stop agents from repeating the same mistakes in this repo | [`/correct`](../correct/SKILL.md) |
-| Build a page whose buttons wake a Grok Bot over a webhook | [`/make-bot-ui`](../make-bot-ui/SKILL.md) |
-| Find their way around pstack | `/poteto-help` |
+| 自明でないタスクを厳密に進める | [`/poteto-mode`](../poteto-mode/SKILL.md) |
+| 始める前に、エージェントが目標と問題を理解したか確かめる | [`/in-your-own-words`](../in-your-own-words/SKILL.md) |
+| 送る前に、プロンプトを大きくではなく深く書き直してもらう。一流の専門家が足すもの、その素材と手法、外部からの確認を加える。返すのはプロンプトで、タスクは実行しない | [`/sharpen`](../sharpen/SKILL.md) |
+| コードがいまどう動いているか、新しいコードをどこに置くべきかを知る | [`/how`](../how/SKILL.md) |
+| コードがなぜこの形なのか、ある数値がどこから来たのかを知る | [`/why`](../why/SKILL.md) |
+| 変更やサブシステムを、平易な説明で理解する | [`/teach`](../teach/SKILL.md) |
+| あるトピックについて、自分の最近の作業を振り返る | [`/recall`](../recall/SKILL.md) |
+| 自分の前回のメッセージ以降にこのチャットで何が変わったかを、平易な言葉と小さな図で把握する。自分の判断を待っている項目はすべて列挙され、返答だけを読んで決められる | [`/ketchup`](../ketchup/SKILL.md) |
+| `/ketchup` と同じように、スライドの短い字幕付き動画で把握する。判断待ちの事項は動画の下に文章で示される | [`/ketchup-video`](../ketchup-video/SKILL.md) |
+| 小さな差分が、その外側で何を壊しうるかを知る | [`/blast-radius`](../blast-radius/SKILL.md) |
+| 関数の境界をまたぐコードを書く前に、型とモジュールの形を決める | [`/architect`](../architect/SKILL.md) |
+| 1 つの依頼文に対する複数の試みを得て、最良のものにまとめる | [`/arena`](../arena/SKILL.md) |
+| 切り分けた範囲ごとの並列のチェックや、ワーカー同士の競争を、cloud agent で実行する | [`/swarm`](../swarm/SKILL.md) |
+| 異なるモデルに差分をレビューさせ、壊そうとさせる | [`/interrogate`](../interrogate/SKILL.md) |
+| 手元で安くテストできるとき、テストを先に書いてバグを直す | [`/tdd`](../tdd/SKILL.md) |
+| `.ts` や `.tsx` の作業に TypeScript の規則を適用する | [`/typescript-best-practices`](../typescript-best-practices/SKILL.md) |
+| レビューの前に、コメントを書いていないレビュアーを使ってコメントを取り除く | [`/no-comments`](../no-comments/SKILL.md) |
+| 文章から AI が書いた痕跡を取り除く | [`/unslop`](../unslop/SKILL.md) |
+| ドキュメント、RFC、README、PR の説明、コミットメッセージを一定の水準で書く | [`/technical-writing`](../technical-writing/SKILL.md) |
+| 直前の返答を、平易な言葉で言い直してもらう | [`/bro`](../bro/SKILL.md) |
+| エージェントに、アプリをスクリプトで操作して振る舞いを証明する手段を与える | [`/create-verification-skill`](../create-verification-skill/SKILL.md) |
+| 検証スキルとその機能マップを、アプリの現状に合わせ直す | [`/maintain-verification-skill`](../maintain-verification-skill/SKILL.md) |
+| 競合状態、不変条件など、テストではめったに届かない性質を形式検証する | [`/create-formal-verification-skill`](../create-formal-verification-skill/SKILL.md) |
+| 対象のコードが変わった後に形式検証を合わせ直し、失敗がずれなのかバグなのかを知る | [`/maintain-formal-verification-skill`](../maintain-formal-verification-skill/SKILL.md) |
+| ユーザーに見えるものを、TLA+ のモデルで検査した図として PM やデザイナーに見せる。規則を破る各状態への最短の道筋も示す | [`/statechart`](../statechart/SKILL.md) |
+| 性能の数値を、報告したり行動の根拠にしたりする前に吟味する | [`/benchmark-checklist`](../benchmark-checklist/SKILL.md) |
+| 大きな変更や横断的な変更、または離席後にレビューする変更を進める | [`/figure-it-out`](../figure-it-out/SKILL.md) |
+| 実行中に決定ログを残し、後で見直す | [`/show-me-your-work`](../show-me-your-work/SKILL.md) |
+| ロールごとのモデルと推論の予算を選ぶ | [`/setup-pstack`](../setup-pstack/SKILL.md) |
+| 自分の作業の習慣を、個人用のモードのスキルにする | [`/automate-me`](../automate-me/SKILL.md) |
+| 終わったタスクから得た教訓を、スキルの編集に変える | [`/reflect`](../reflect/SKILL.md) |
+| このリポジトリでエージェントが同じ間違いを繰り返さないようにする | [`/correct`](../correct/SKILL.md) |
+| ボタンを押すと webhook 経由で Grok Bot を起動するページを作る | [`/make-bot-ui`](../make-bot-ui/SKILL.md) |
+| pstack の中で迷わないよう案内してもらう | `/poteto-help` |
 
-If a skill directory next to this one is missing from the table, read its frontmatter and route by its description. The `principle-*` directories are covered under principles below.
+このディレクトリと同じ階層にあるスキルのディレクトリが表にないときは、その frontmatter を読み、description に従って振り分ける。`principle-*` のディレクトリは、後の原則の節で扱う。
 
-Close calls:
+紛らわしい組み合わせ：
 
-- `/how` explains what the code does. `/why` explains the reasons. `/teach` runs one or both and explains the result plainly.
-- `/arena` gives every worker the same brief and merges the best parts. `/swarm` splits work into slices or a race and returns one report.
-- `/interrogate` reviews the diff. `/blast-radius` looks for breakage outside the diff and proves the one fact that makes the change safe.
-- `/recall` rebuilds context across recent chats. `/ketchup` covers only this chat since the user's last message. Resuming one specific chat or branch is the Session pickup playbook.
-- `/figure-it-out` designs one rigorous run. The Autonomous run playbook drives one task to a finish condition.
+- `/how` はコードが何をするかを説明する。`/why` はその理由を説明する。`/teach` はどちらか一方か両方を実行し、結果を平易に説明する。
+- `/arena` はすべてのワーカーに同じ依頼文を渡し、最も良い部分をまとめる。`/swarm` は作業を切り分けるか競争させ、1 つの報告を返す。
+- `/interrogate` は差分をレビューする。`/blast-radius` は差分の外で壊れるものを探し、変更を安全にしている 1 つの事実を証明する。
+- `/recall` は、最近の複数のチャットにまたがって文脈を組み立て直す。`/ketchup` が扱うのは、このチャットのうち、ユーザーの前回のメッセージ以降だけである。特定の 1 つのチャットやブランチを再開するのは、セッションの引き継ぎ（Session pickup）のプレイブックである。
+- `/figure-it-out` は、厳密な実行を 1 つ設計する。自律実行（Autonomous run）のプレイブックは、1 つのタスクを終了条件まで進める。
 
-Not in pstack:
+pstack に含まれないもの：
 
-- `/deslop`, `control-cli`, and `control-ui` ship in the `cursor-team-kit` plugin.
-- `/loop` and `/create-skill` are Cursor built-ins.
-- pstack has no `/orchestrate` skill. If the slash menu shows `/orchestrate`, another plugin provides it.
+- `/deslop`、`control-cli`、`control-ui` は `cursor-team-kit` プラグインに同梱されている。
+- `/loop` と `/create-skill` は Cursor の組み込み機能である。
+- pstack に `/orchestrate` スキルはない。スラッシュメニューに `/orchestrate` が出るなら、ほかのプラグインが提供している。
 
-## Playbooks and principles
+## プレイブックと原則（Playbooks and principles）
 
-Playbooks are step lists inside `/poteto-mode`, not skills, so they have no slash command. Inside `/poteto-mode`, describing the task picks one, and these phrases name one directly:
+プレイブックは `/poteto-mode` の中にある手順の一覧であり、スキルではないので、スラッシュコマンドはない。`/poteto-mode` の中でタスクを説明すればプレイブックが 1 つ選ばれ、次のフレーズはプレイブックを直接指定する。
 
-- "babysit this pr" or "check on pr 123" runs Babysit. It drives the PR to merge-ready and stops there. It doesn't merge unless the user asks to merge, land, or ship.
-- "land the stack" runs Shipping.
-- "take over this branch" runs Session pickup.
-- "pause safely" runs Pause safely.
-- "full autopilot on this queue" runs Autopilot-full. "autopilot, don't merge" runs Autopilot-stack.
-- "run the eval playbook" runs Eval.
+- 「babysit this pr」（この PR を見守って）や「check on pr 123」（PR 123 の様子を見て）は、見守り（Babysit）を実行する。PR をマージできる状態まで進め、そこで止まる。ユーザーがマージ（merge、land、ship）を頼まない限り、マージはしない。
+- 「land the stack」（スタックをマージして）は、リリース（Shipping）を実行する。
+- 「take over this branch」（このブランチを引き継いで）は、セッションの引き継ぎ（Session pickup）を実行する。
+- 「pause safely」（安全に一時停止して）は、安全な一時停止（Pause safely）を実行する。
+- 「full autopilot on this queue」（このキューを完全に自動で進めて）は、マージまでの自動実行（Autopilot-full）を実行する。「autopilot, don't merge」（自動で進めて、ただしマージはしないで）は、マージなしの自動実行（Autopilot-stack）を実行する。
+- 「run the eval playbook」（評価のプレイブックを実行して）は、評価（Eval）を実行する。
 
-Without `/poteto-mode`, a phrase such as "babysit this pr" can start Cursor's own skill for the same job instead. The Playbooks section of [`poteto-mode`](../poteto-mode/SKILL.md) lists every playbook. [Guide page 6](../../docs/guide/06-verify-and-ship.md) covers opening, babysitting, and landing a PR.
+`/poteto-mode` なしでは、「babysit this pr」のようなフレーズが、代わりに同じ役割の Cursor 自身のスキルを起動することがある。すべてのプレイブックの一覧は、[`poteto-mode`](../poteto-mode/SKILL.md) のプレイブック（Playbooks）の節にある。PR を開く、見守る、マージするまでの流れは、[ガイドの 6 ページ目](../../docs/guide/06-verify-and-ship.md) で扱う。
 
-pstack has no planning skill. Cursor's Plan Mode works alongside it. For work that spans phases or stacked PRs, asking `/poteto-mode` for a plan runs the [Multi-phase plan playbook](../poteto-mode/playbooks/multi-phase-plan.md), which writes the plan and doesn't implement it. For a design question, the Prototype playbook or `/architect` settles it in code first.
+pstack に計画用のスキルはない。Cursor の Plan Mode と併用できる。複数のフェーズや積み重ねた PR にまたがる作業では、`/poteto-mode` に計画を頼むと [複数フェーズの計画（Multi-phase plan）のプレイブック](../poteto-mode/playbooks/multi-phase-plan.md) が実行され、計画を書くが実装はしない。設計の問いは、プロトタイプ（Prototype）のプレイブックか `/architect` が、まずコードで決着させる。
 
-Principles are one-rule skills that `/poteto-mode` reads and cites in its replies. The user rarely invokes one. They steer with the names instead, as in "apply prove it works. show me the real output." Typing `/principle-<name>` still loads one on demand. [Guide page 8](../../docs/guide/08-principles.md) lists them.
+原則は、規則を 1 つだけ持つスキルで、`/poteto-mode` が読み、返答で引用する。ユーザーが原則を直接呼び出すことはまれである。代わりに、「apply prove it works. show me the real output.」（動くことを証明する（prove it works）を適用して。実際の出力を見せて）のように、名前で方向を指示する。それでも `/principle-<name>` と入力すれば、必要なときに読み込める。一覧は [ガイドの 8 ページ目](../../docs/guide/08-principles.md) にある。
 
-## Fix a run that went wrong
+## うまくいかなかった実行を直す（Fix a run that went wrong）
 
-| Symptom | Fix |
+| 症状 | 対処 |
 |---|---|
-| The mode stopped applying after a few turns | It was started with Enter. Start it as a Custom Mode, or start each task with `/poteto-mode`. |
-| A question got treated as the next step of the last task | Say "new task", or say the turn doesn't need the mode. |
-| A new model choice had no effect | The rule from `/setup-pstack` applies to new chats. Start one. |
-| Runs cost more than expected | See the cost paragraph under Get set up. |
-| A skill didn't load on its own | Only `/setup-pstack` loads from the user's words. The others load when the user types them or when `/poteto-mode` runs them, and it doesn't run every skill. |
-| Parallel agents overwrote each other | Give each agent its own worktree, or run them as cloud agents, which each get their own machine. |
-| An overnight run moved but finished nothing | `/loop` needs a check that can pass or fail, not a duration. See [guide page 7](../../docs/guide/07-overnight.md). |
-| The reply claims success from a green build | Ask for the real command, flow, stored value, or profile. That's the prove-it-works principle. |
+| モードが数ターンで適用されなくなった | Enter で始めたためである。Custom Mode として始めるか、タスクごとに `/poteto-mode` で始める。 |
+| 質問が、直前のタスクの次の手順として扱われた | 「new task」と言うか、そのターンにはモードが不要だと伝える。 |
+| 新しく選んだモデルが反映されない | `/setup-pstack` のルールは新しいチャットから適用される。新しいチャットを始める。 |
+| 実行の費用が想定より高い | セットアップする（Get set up）の節にある、費用の段落を参照する。 |
+| スキルが自動で読み込まれなかった | ユーザーの言葉から読み込まれるのは `/setup-pstack` だけである。ほかのスキルは、ユーザーが入力したときか、`/poteto-mode` が実行したときに読み込まれる。`/poteto-mode` もすべてのスキルを実行するわけではない。 |
+| 並列のエージェントが互いの変更を上書きした | エージェントごとに worktree を分けるか、cloud agent として実行する。cloud agent はそれぞれ専用のマシンで動く。 |
+| 夜間の無人実行で、作業は進んだが何も完了しなかった | `/loop` には、期間ではなく、合否のつく確認が必要である。[ガイドの 7 ページ目](../../docs/guide/07-overnight.md) を参照する。 |
+| 返答が、ビルドが通ったことを根拠に成功を主張している | 実際のコマンド、操作の流れ、保存された値、プロファイルを求める。これが動くことを証明する（prove-it-works）原則である。 |
 
-For a run that drifts, [`references/prompting.md`](references/prompting.md) has one-line steers. [Guide page 10](../../docs/guide/10-recipes-and-pitfalls.md) has more pitfalls and the recipes worth copying.
+実行が逸れていくときは、[`references/prompting.md`](references/prompting.md) に 1 行で方向を正す指示がある。[ガイドの 10 ページ目](../../docs/guide/10-recipes-and-pitfalls.md) には、ほかの落とし穴と、そのまま使えるレシピがある。
 
-## Make pstack my own
+## pstack を自分用にする（Make pstack my own）
 
-- [`/automate-me`](../automate-me/SKILL.md) drafts a personal mode skill from the user's own history, to use alongside `/poteto-mode`.
-- [`/reflect`](../reflect/SKILL.md) after a session turns its lessons into skill edits the user approves.
-- `/poteto-mode write a skill for <workflow>` runs the authoring playbook. The eval playbook tests a skill change blind.
-- Fix a misbehaving skill in its own PR, not inside the feature work where it went wrong.
+- [`/automate-me`](../automate-me/SKILL.md) は、ユーザー自身の履歴から、`/poteto-mode` と併用する個人用のモードのスキルを下書きする。
+- セッションの後に [`/reflect`](../reflect/SKILL.md) を使うと、そのセッションの教訓を、ユーザーが承認するスキルの編集に変える。
+- `/poteto-mode write a skill for <workflow>` は、スキルの作成（Authoring a skill）のプレイブックを実行する。評価（Eval）のプレイブックは、スキルの変更を盲検でテストする。
+- おかしな振る舞いをするスキルは、問題が起きた機能開発の作業の中ではなく、専用の PR で直す。
 
-[Guide page 9](../../docs/guide/09-make-it-yours.md) covers each of these.
+それぞれの詳細は [ガイドの 9 ページ目](../../docs/guide/09-make-it-yours.md) にある。
 
-## Reply
+## 返答（Reply）
 
-Lead with the answer. Give at most one example prompt in a code block, adapted from [`references/recipes.md`](references/recipes.md) when one fits, then the link to that file. Keep it short unless the user asked for the whole map.
+答えから書く。プロンプトの例はコードブロックで 1 つまで示し、合うものがあれば [`references/recipes.md`](references/recipes.md) から手直しして使い、そのあとにそのファイルへのリンクを示す。ユーザーが全体の案内を求めない限り、短くまとめる。

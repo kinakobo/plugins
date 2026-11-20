@@ -1,43 +1,43 @@
 ---
 name: create-formal-verification-skill
-description: "Generate a project-local skill that formally verifies the code where a bug costs the most and tests reach the least, in any language, with whichever verification tool fits. Use for /create-formal-verification-skill, \"model-check this race\", \"prove this invariant\", or when concurrency, retries, state machines, parsers, or unsafe code need more than tests."
+description: "バグの代償が最も大きく、テストが最も届きにくいコードを形式検証する、プロジェクトローカルのスキルを生成する。言語は問わず、合う検証ツールを使う。/create-formal-verification-skill、「この競合をモデル検査して」、「この不変条件を証明して」、または並行処理、リトライ、状態機械、パーサー、unsafe なコードにテスト以上のものが必要なときに使う。"
 disable-model-invocation: true
 ---
 
-# Create a formal verification skill
+# 形式検証スキルを作る（Create a formal verification skill）
 
-A test checks the cases that someone thought to write. Formal verification checks every case in a stated scope: every order of steps in a model, every input up to a bound, or every input. This skill finds the part of the repo where that matters most, verifies one property of it, and leaves a project-local skill that lets the next agent check a change against that property. Write that skill for an agent who reads it cold, mid-change, and has never seen your work. The user must be able to trust the result and act on it without learning the verification language.
+テストが確かめるのは、誰かが書こうと思いついたケースである。形式検証は、明示した範囲のすべてのケースを確かめる。モデルの中のあらゆるステップの順序、ある上限までのあらゆる入力、またはあらゆる入力である。このスキルは、リポジトリの中でそれが最も重要になる部分を見つけ、その性質を 1 つ検証し、次のエージェントが変更をその性質に照らして確かめられるプロジェクトローカルのスキルを残す。そのスキルは、変更の途中で予備知識なしに読み、こちらの作業を一度も見たことのないエージェントに向けて書く。ユーザーが、検証用の言語を学ばずに結果を信頼し、それに基づいて行動できなければならない。
 
-## Choose the target from the code
+## コードから対象を選ぶ（Choose the target from the code）
 
-Answer from the codebase, and ask the user only what you cannot observe. If the user named an area or a bug, start there.
+コードベースから答え、観察できないことだけをユーザーに尋ねる。ユーザーが領域やバグを挙げたなら、そこから始める。
 
-A good target is a promise the code makes, where a break harms users and tests rarely reach the case that breaks it. Choose the strongest such target in the repo, not the one that is easiest to verify.
+よい対象とは、コードの約束のうち、破れるとユーザーに害が及び、それを破るケースにテストがめったに届かないものである。リポジトリの中でそうした対象のうち最も強いものを選び、最も検証しやすいものは選ばない。
 
-## Let the question choose the tool
+## 問いに合わせてツールを選ぶ（Let the question choose the tool）
 
-Pick the tool that answers the question at the lowest cost: a model checker, a proof assistant, an SMT-backed verifier, or another tool. Whether events can happen in a bad order usually suits a model checker over a small model of the design, and TLA+ is the default for that in any language. Whether the code itself behaves for every input, as with memory safety, overflow, or a data-structure invariant, usually suits a verifier that runs on the code. If no verifier runs on this language, say so, and test the real code with generated inputs, not a hand model of the function. A property that must hold at every size, where a bound is not enough, can need a proof. Prefer a tool that the repo's developers can install and run, and tell the user why you chose it.
+問いに最も低いコストで答えるツールを選ぶ。モデル検査器、証明支援系、SMT を使う検証器、またはほかのツールである。事象がまずい順序で起こりうるかという問いには、たいてい設計の小さなモデルに対するモデル検査器が合い、その用途ではどの言語でも TLA+ を既定にする。メモリ安全性、オーバーフロー、データ構造の不変条件のように、コードそのものがあらゆる入力で正しく振る舞うかという問いには、たいていコードの上で動く検証器が合う。この言語で動く検証器がなければそう述べ、関数を手で写したモデルではなく、実際のコードを生成した入力でテストする。上限では足りず、どんな大きさでも成り立たなければならない性質には、証明が必要になることがある。リポジトリの開発者がインストールして実行できるツールを優先し、それを選んだ理由をユーザーに伝える。
 
-## What makes it good
+## よい検証の条件（What makes it good）
 
-- **True to the code.** Every part of the model or proof points to code that a reviewer can open. What the verification treats as one indivisible step is one indivisible step in the code. Names come from this repo.
-- **Able to fail.** A check that you have never seen fail proves nothing. Show each property failing on a broken variant of the code it guards, such as a removed check or a reordered step.
-- **Findings stay findings.** When the current code breaks the property, report it with the counterexample in the code's terms. Do not weaken the property or the model until it passes, and do not change product code unless the user asks.
-- **Honest about scope.** Say what is verified, under which bounds and assumptions, and what is left out. A pass covers the model or the bound, not the whole system.
-- **Readable without the tool.** State the property and the harm in one plain sentence each. Tell a counterexample as a short sequence of steps in the code's words.
-- **Cheap to rerun.** One command, a reproducible tool version, and a run short enough that the next agent will use it on every relevant change.
-- **Kept in step with the code.** Record which files and functions each check covers, and the commit at which you last confirmed that the verification describes them. When the covered code changes after that commit, the next agent can see that the verification needs another look.
+- **コードに忠実である。** モデルや証明のどの部分も、レビュアーが開けるコードを指す。検証が 1 つの不可分なステップとして扱うものは、コードでも 1 つの不可分なステップである。名前はこのリポジトリのものを使う。
+- **失敗できる。** 失敗するのを一度も見たことのないチェックは、何も証明しない。各性質が、それが守るコードを壊した版（チェックを取り除く、ステップの順序を入れ替えるなど）で失敗することを示す。
+- **見つけた問題は、問題のまま報告する。** 現在のコードが性質を破っているなら、コードの用語で書いた反例を添えて報告する。通るまで性質やモデルを弱めない。ユーザーに頼まれない限り、製品のコードを変えない。
+- **範囲について正直である。** 何を、どの上限と仮定のもとで検証したか、何を対象外にしたかを述べる。通ったことが保証するのはモデルや上限の範囲であり、システム全体ではない。
+- **ツールを知らなくても読める。** 性質と害を、それぞれ平易な 1 文で述べる。反例は、コードの言葉で書いた短いステップの列として伝える。
+- **安く再実行できる。** コマンド 1 つで、ツールのバージョンが再現でき、次のエージェントが関係する変更のたびに使う程度に実行が短い。
+- **コードと歩調を合わせる。** 各チェックがどのファイルと関数を対象にしているかと、検証がそれらを記述していると最後に確認したコミットを記録する。そのコミットのあとで対象のコードが変わったら、次のエージェントは検証を見直す必要があるとわかる。
 
-## Generate the verify skill
+## 検証スキルを生成する（Generate the verify skill）
 
-Write a project-local skill with frontmatter that names the area and says when to use it. Without frontmatter, the skill never registers. From the skill alone, the next agent must be able to tell whether a change touches the verified code, run the check, tell a real bug from a modeling error, and update the verification when a change is intended. Put the coverage record and the sync commit in the skill, and tell the next agent to move the sync commit forward only after it confirms that the verification describes the code at the new commit. Use this repo's real commands, paths, and nouns, and leave no placeholders.
+領域を挙げ、いつ使うかを述べる frontmatter を付けて、プロジェクトローカルのスキルを書く。frontmatter がないと、スキルは決して登録されない。次のエージェントがそのスキルだけを読んで、変更が検証済みのコードに触れるかどうかを判断し、チェックを実行し、本物のバグとモデル化の誤りを見分け、変更が意図されたものなら検証を更新できなければならない。対象の記録と同期コミットをスキルに書き、新しいコミットで検証がコードを記述していると確認してから初めて同期コミットを進めるよう、次のエージェントに指示する。このリポジトリの実際のコマンド、パス、名詞を使い、プレースホルダーを残さない。
 
-If the check is a TLA+ model, tell the next agent to read every result with the pstack [`/statechart`](../statechart/SKILL.md) skill. It shows each invariant violation the checker finds as its shortest path in plain words. When the check passes, `/statechart` draws a chart of how the system moves between states. Refer to `/statechart` by name. Its commands, options, and file paths change between releases and machines, so copy none of them into the generated skill or its scripts.
+チェックが TLA+ のモデルなら、すべての結果を pstack の [`/statechart`](../statechart/SKILL.md) スキルで読むよう、次のエージェントに指示する。このスキルは、検査器が見つけた不変条件の違反を、それぞれ最短の経路として平易な言葉で示す。チェックが通ったときは、`/statechart` はシステムが状態の間をどう移るかのチャートを描く。`/statechart` は名前で参照する。そのコマンド、オプション、ファイルパスはリリースやマシンによって変わるので、生成するスキルにもそのスクリプトにも 1 つも写さない。
 
-## Prove it before you hand off
+## 引き渡す前に証明する（Prove it before you hand off）
 
-Follow the generated skill once, as the next agent would, on a scratch change that breaks the property in the real code. It must catch the break. Then drop the scratch change and confirm that the check is back where it started: passing, or failing only on the findings you will report. A verify skill that was never run is a draft. If the skill misses the break or a step does not run, fix the skill or the verification, not the scratch change.
+実際のコードで性質を破る使い捨ての変更を加え、次のエージェントがするとおりに、生成したスキルに一度従う。スキルはその破れを捕まえなければならない。そのあと使い捨ての変更を捨て、チェックが元の状態に戻ったことを確かめる。つまり、通るか、報告する予定の問題でだけ失敗する状態である。一度も実行していない検証スキルは下書きである。スキルが破れを見逃すか、ステップが動かないなら、使い捨ての変更ではなく、スキルか検証を直す。
 
-## Hand off
+## 引き渡し（Hand off）
 
-Tell the user what you verified, which tool you used and why, the bounds, what the check found in plain words, how to run it, and what it does not cover. Suggest a second target only if you found a close one. Point the user at `/maintain-formal-verification-skill` for bringing the verification back in line after changes that did not recheck it.
+何を検証したか、どのツールをなぜ使ったか、上限、チェックが見つけたことを平易な言葉で、実行の仕方、対象外のことをユーザーに伝える。2 つ目の対象は、それに近い有力なものを見つけた場合にだけ提案する。検証をし直さずに入った変更のあとで検証をコードに合わせ直すために、ユーザーに `/maintain-formal-verification-skill` を案内する。
