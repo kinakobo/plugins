@@ -1,15 +1,15 @@
 ---
 name: principle-minimize-reader-load
-description: "Apply when reviewing or shaping code that's hard to trace. Count layers between question and answer, and hidden state in the reader's head; collapse one-caller wrappers and shrink mutable scope."
+description: "追いにくいコードをレビューするとき、または形を整えるときに適用する。問いから答えまでのレイヤーの数と、読み手が頭に抱えておく隠れた状態を数え、呼び出し元が 1 つしかないラッパーを畳み、可変な範囲を狭める。"
 disable-model-invocation: true
 ---
 
-# Minimize Reader Load
+# 読み手の負荷を最小にする（Minimize Reader Load）
 
-Reader load is the work a reader must do to understand code. It has two independent axes: layers to trace between the question and the answer, and hidden or mutable state to hold in their head. Guard both.
+読み手の負荷とは、読み手がコードを理解するためにしなければならない作業である。負荷には互いに独立した 2 つの軸がある。問いから答えまでにたどるレイヤーと、頭に抱えておかなければならない隠れた状態や可変な状態である。両方を抑える。
 
-- Collapse layers that only forward: wrappers with one caller, adapters with no second implementation, pass-through methods. Inline them.
-- Shrink state scope: returns over mutations, locals over fields, fields over module state, module state over globals. Derive instead of sync.
-- Name an invariant once at the boundary, not in every consumer.
+- 転送しかしないレイヤーを畳む。呼び出し元が 1 つのラッパー、2 つ目の実装がないアダプター、素通しするだけのメソッドである。これらはインライン化する。
+- 状態の範囲を狭める。変更より戻り値、フィールドよりローカル変数、モジュールの状態よりフィールド、グローバルよりモジュールの状態を選ぶ。同期させるのではなく導出する。
+- 不変条件は、利用する側のすべてではなく、境界で 1 度だけ明示する。
 
-The test: can a new reader answer "where does X come from?" and "what can change X?" in under 30 seconds? If not, cut layers or cut state.
+判定の問いは、初めて読む人が「X はどこから来るのか」「X を変えうるのは何か」に 30 秒以内に答えられるかである。答えられないなら、レイヤーか状態を減らす。

@@ -1,82 +1,82 @@
 ---
 name: statechart
-description: "Check a TLA+ model of a system that moves between states, such as a product flow, a protocol, or a service, and draw it as a Mermaid statechart. The report gives the shortest path to each state that breaks a rule. Use for /statechart, or to show a bug as a path through states."
+description: "製品のフロー、プロトコル、サービスなど、状態の間を移るシステムの TLA+ モデルを検査し、Mermaid のステートチャートとして描く。レポートは、規則を破る各状態への最短の経路を示す。/statechart、またはバグを状態をたどる経路として示したいときに使う。"
 disable-model-invocation: true
 ---
 
-# Statechart
+# ステートチャート（Statechart）
 
-The chart shows how a system moves between states, in the words of the person who reads it. That person, the reader, decides whether the behavior is right.
+チャートは、システムが状態の間をどう移るかを、それを読む人の言葉で示す。その人、つまり読み手が、振る舞いが正しいかどうかを決める。
 
-## Run
+## 実行（Run）
 
-Work in a scratch folder outside the repo. Write a TLA+ spec and its config. Then run:
+リポジトリの外の一時フォルダで作業する。TLA+ の仕様とその設定を書く。そして次を実行する。
 
 ```sh
 <skill dir>/scripts/statechart SPEC.tla [--config FILE] [--view FILE] [--out DIR]
 ```
 
-`scripts/statechart.ts` is TypeScript, so run it with a runtime that can execute TypeScript. `scripts/statechart` is a POSIX shell script that picks one. On native Windows, run `node --disable-warning=ExperimentalWarning <skill dir>/scripts/statechart.ts` with Node 22.18 to 22.x, or Node 23.6 or later.
+`scripts/statechart.ts` は TypeScript なので、TypeScript を実行できるランタイムで動かす。`scripts/statechart` は、そのランタイムを選ぶ POSIX シェルスクリプトである。ネイティブの Windows では、Node 22.18 から 22.x まで、または Node 23.6 以降で、`node --disable-warning=ExperimentalWarning <skill dir>/scripts/statechart.ts` を実行する。
 
-The first run installs TLC and Java with mise and needs the network.
+初回の実行では mise で TLC と Java をインストールするので、ネットワークが必要である。
 
-## Write the spec
+## 仕様を書く（Write the spec）
 
-- Write each rule that the reader agrees to as an INVARIANT. A rule can be about a screen, a result, a stored value, or a message. If the model has no variable for a rule, add the variable. Never weaken a rule to make it hold.
-- Write `Next` as a disjunction of the actions, such as `YouPressPlay \/ YouPressStop`. If you do not, TLC names every step `Next`.
-- A state with no step out breaks `NoDeadlock`, also when it is a correct end state. When an INVARIANT or a PROPERTY already has that name, the rule is `CHECK_DEADLOCK`. Add to `Next` an action that is true only in the end states and changes nothing, such as `Done == phase \in {"paid", "failed"} /\ UNCHANGED vars`, and give it a label in `step()`.
+- 読み手が同意した規則を、それぞれ INVARIANT として書く。規則は、画面、結果、保存された値、メッセージのどれについてのものでもよい。ある規則のための変数がモデルになければ、その変数を足す。成り立たせるために規則を弱めることは決してしない。
+- `Next` は、`YouPressPlay \/ YouPressStop` のように、アクションの選言として書く。そうしないと、TLC はすべてのステップを `Next` と名付ける。
+- 出ていくステップのない状態は、正しい終了状態であっても `NoDeadlock` を破る。INVARIANT か PROPERTY がすでにその名前を使っているときは、この規則の名前は `CHECK_DEADLOCK` になる。`Done == phase \in {"paid", "failed"} /\ UNCHANGED vars` のように、終了状態でだけ真になり、何も変えないアクションを `Next` に足し、`step()` でそれにラベルを付ける。
 
-## Pick the chart
+## チャートを決める（Pick the chart）
 
-You do the work that needs judgment: the words on each state and arrow, the phases and their colors, the title, and the report to the reader. Put your work in a view module, and give it with `--view`.
+判断が必要な作業は、自分で行う。各状態と矢印の言葉、フェーズとその色、タイトル、読み手への報告である。その作業はビューのモジュールに書き、`--view` で渡す。
 
-To show the reader's words, the view exports `state(vars)`. The value that `state()` returns picks the form:
+読み手の言葉を示すために、ビューは `state(vars)` を export する。`state()` が返す値によって、チャートの形が決まる。
 
-- A string gives a flat chart: `export const state = (v) => (v.paid ? "Paid" : "Paying");`
-- An array gives parent states: `export const state = (v) => v.main.split(".");`
-- An object gives one parallel region for each key: `export const state = (v) => ({ Playback: v.playback, Volume: v.volume });`
+- 文字列なら、階層のないチャートになる: `export const state = (v) => (v.paid ? "Paid" : "Paying");`
+- 配列なら、親の状態を持つチャートになる: `export const state = (v) => v.main.split(".");`
+- オブジェクトなら、キーごとに 1 つの並行領域を持つチャートになる: `export const state = (v) => ({ Playback: v.playback, Volume: v.volume });`
 
-Label each state with what the reader can see or cares about, such as "Paying" or "Lease held, write pending". Keep variable names out of labels. In `vars`, a TLA+ sequence is an object with keys from 1, so `v.pc[1]` is `pc[1]`. A set is an array.
+各状態には、「Paying」や「Lease held, write pending」のように、読み手が見られるもの、または気にかけるもののラベルを付ける。ラベルに変数名を入れない。`vars` の中では、TLA+ のシーケンスは 1 から始まるキーを持つオブジェクトなので、`v.pc[1]` が `pc[1]` に当たる。集合は配列になる。
 
-The view can also export `step(action, from, to)`. It gets the TLC action name and the values before and after the step, and it returns the label of the arrow. Write each step label as the user sees it happen, such as "you press play" or "the connect fails". Do not name the code or the TLA+ action. Two actions that end the same in the chart get the same label, so that they share one arrow.
+ビューは `step(action, from, to)` も export できる。この関数は、TLC のアクション名と、ステップの前後の値を受け取り、矢印のラベルを返す。各ステップのラベルは、「you press play」や「the connect fails」のように、ユーザーから見た出来事として書く。コードや TLA+ のアクションの名前を書かない。チャート上で同じ結果になる 2 つのアクションには同じラベルを付け、1 本の矢印を共有させる。
 
-When a step can occur only in some conditions, end its label with the condition in brackets, in the reader's words, such as `you press play [while the file loads]`. In a regions chart, the command writes the condition on the other regions on the arrow, in the words of their labels, such as `[when Offline]`. Your brackets replace it, and two arrows from one state can then look the same. So in a regions chart, do not write brackets for a condition on another region. When a value that no label shows decides where a step goes, name the result in the label, such as "the roster read fails".
+あるステップが一部の条件でしか起きないときは、`you press play [while the file loads]` のように、ラベルの末尾に読み手の言葉で条件を角括弧で書く。領域を持つチャートでは、ほかの領域についての条件を、コマンドがそれらのラベルの言葉で矢印に書く（`[when Offline]` など）。自分で書いた角括弧はそれを置き換えるので、1 つの状態から出る 2 本の矢印が同じに見えることがある。そのため、領域を持つチャートでは、別の領域についての条件を角括弧で書かない。どのラベルにも表れない値がステップの行き先を決めるときは、「the roster read fails」のように、その結果をラベルで述べる。
 
-The view can also export these:
+ビューは次のものも export できる。
 
-- `group(vars)` returns the name of a phase. Each chart state gets the color of its group. When the model states behind one chart state are in different groups, that state gets no color.
-- `colors` gives each group name a color class.
-- `title` is a string that the chart shows at the top.
+- `group(vars)` はフェーズの名前を返す。チャートの各状態には、そのグループの色が付く。チャートの 1 つの状態の元になるモデルの状態が、異なるグループに属するときは、その状態には色が付かない。
+- `colors` は、各グループ名に色のクラスを割り当てる。
+- `title` は、チャートの上部に表示する文字列である。
 
-The command calls `state()` and `group()` at most once for each model state, and `step()` at most once for each step. The chart and the report both use those answers. So make each function depend only on its arguments.
+コマンドは、`state()` と `group()` をモデルの状態ごとに多くても 1 回、`step()` をステップごとに多くても 1 回呼ぶ。チャートとレポートの両方がその返り値を使う。そのため、各関数は引数だけに依存させる。
 
-The chart does not draw a step that stays in one label. Split a label when the reader must see such a step.
+チャートは、同じラベルの中にとどまるステップを描かない。読み手がそうしたステップを見なければならないときは、ラベルを分ける。
 
-Aim for about 20 arrows or fewer, because a busier chart is hard to read. First return coarser labels from `state()`. Give one label to values that act the same, and leave out a detail that the reader does not need, such as a call in flight whose return changes nothing. Keep each state of a bug path, and keep each mark. When a merge changes a `breaks` state to `mayBreak`, it hides where a rule breaks. Do not merge two states that break different rules, because the reader then cannot see which rule breaks where. If the chart is still too busy, return `null` from `step()` for the steps that the reader does not need, such as a reset that every state has, or a step whose arrow repeats what other arrows show. Obey these rules when you hide steps:
+矢印はおよそ 20 本以下を目指す。それより込み入ったチャートは読みにくいからである。まず、`state()` から粗いラベルを返す。同じように振る舞う値には 1 つのラベルを付け、読み手に不要な詳細（戻ってきても何も変わらない、実行中の呼び出しなど）は省く。バグの経路の各状態は残し、各印も残す。まとめた結果 `breaks` の状態が `mayBreak` に変わると、どこで規則が破れるかが見えなくなる。異なる規則を破る 2 つの状態はまとめない。まとめると、読み手はどの規則がどこで破れるかを見られなくなるからである。それでもチャートが込み入りすぎているなら、読み手に不要なステップ（すべての状態にあるリセットや、矢印がほかの矢印の示すことを繰り返すだけのステップなど）について、`step()` から `null` を返す。ステップを隠すときは、次の規則を守る。
 
-- Keep each chart state reachable by arrows from a start state.
-- Keep at least one arrow out of each chart state that has a step out in the model.
-- Hide all the steps of an arrow, or none of them. When you hide only some, its condition gets narrower.
-- In the hand-off, say which steps the chart hides.
+- チャートのどの状態にも、開始状態から矢印をたどって到達できるようにしておく。
+- モデルで出ていくステップを持つチャートの状態には、出ていく矢印を少なくとも 1 本残す。
+- 1 本の矢印のステップは、すべて隠すか、1 つも隠さないかのどちらかにする。一部だけを隠すと、その矢印の条件が狭くなる。
+- 引き渡しの際に、チャートがどのステップを隠しているかを述べる。
 
-## Read the report
+## レポートを読む（Read the report）
 
-- In the chart, a state that breaks a rule has the class `breaks`. When only some model states behind it break the rule, it has the class `mayBreak`. The Legend names the rules of each mark. When two rules break, it names both on one mark, so say in the hand-off which state breaks which rule. In a regions chart, a state gets a mark when each combination of region states that includes it can break a rule. When a combination can break a rule and none of its states has a mark, each state in that combination gets a mark.
-- TLC goes past a state that breaks a rule, so the chart shows the states after a bug.
-- Because TLC goes past bugs, a model with no limit on its states can run without end. Keep the constants small, or add a CONSTRAINT.
-- With a VIEW or a SYMMETRY, TLC counts states that it treats as the same as one state, and the chart draws that one state. An arrow can lead to it rather than to the state that the step reaches, and the report says so.
-- TLC checks the rules in each state past a CONSTRAINT or an ACTION_CONSTRAINT, but it does not explore that state or check it for deadlock. When TLC's shortest path for a rule ends in such a state, the chart draws that state, and the report gives that path. The chart does not draw the other states past the bound. A deadlock in such a state does not show. TLC also checks the rules after each step that an ACTION_CONSTRAINT excludes, also when it reaches the next state another way. When TLC's shortest path for a rule ends with such a step, the chart draws that step.
-- The command checks the rules with TLC on the config as written, with one worker. When a rule breaks, the command removes that rule and runs TLC again, until no rule breaks. After the first break, each run stops at 100,000 distinct states, so that a large model does not run without end. When a run reaches that bound or stops on an error, the report lists the rules that it did not check under "Rules not checked", and the chart does not mark them. A rule that is not checked can hold or break. To check it, remove the rules that break from the config, or make the model smaller. The bound adds a module that changes TLC's order of the variables, so for a property TLC can find a different counterexample than a run without the bound.
-- `tlc.out` is what TLC printed on the config as written. When the chart does not show the bug path of a rule that breaks, `tlc-RULE.out` is what TLC printed for the run that found it. When TLC repeats its first warning, plain TLC prints it twice, but `tlc.out` shows it once, because TLC leaves the second copy out of the output that this command reads. That happens only when Java runs with `-XX:+UseParallelGC`, since otherwise TLC's first warning is its advice to pass that flag, which it prints once.
+- チャートでは、規則を破る状態に `breaks` クラスが付く。その元になるモデルの状態の一部だけが規則を破るときは、`mayBreak` クラスが付く。凡例（Legend）は、各印がどの規則を表すかを示す。2 つの規則が破れるときは、1 つの印に両方の名前を挙げるので、どの状態がどの規則を破るかを引き渡しの際に述べる。領域を持つチャートでは、ある状態を含む領域の状態の組み合わせがどれも規則を破りうるとき、その状態に印が付く。ある組み合わせが規則を破りうるのに、その組み合わせのどの状態にも印がないときは、その組み合わせの各状態に印が付く。
+- TLC は規則を破る状態の先も探索するので、チャートにはバグのあとの状態も表れる。
+- TLC はバグの先も探索するので、状態に上限のないモデルは、終わらずに動き続けることがある。定数を小さく保つか、CONSTRAINT を足す。
+- VIEW か SYMMETRY があると、TLC は同じとみなす状態を 1 つの状態として数え、チャートはその 1 つの状態を描く。矢印が、ステップが実際に到達する状態ではなく、その状態に向かうことがあり、そのときはレポートがそう述べる。
+- TLC は、CONSTRAINT や ACTION_CONSTRAINT の先にある各状態で規則を確かめるが、その状態の先は探索せず、デッドロックも確かめない。ある規則についての TLC の最短経路がそうした状態で終わるときは、チャートはその状態を描き、レポートはその経路を示す。上限の先にあるそれ以外の状態は、チャートに描かれない。そうした状態でのデッドロックは表れない。TLC は、ACTION_CONSTRAINT が除外する各ステップのあとでも、次の状態に別の道筋で到達する場合も含めて、規則を確かめる。ある規則についての TLC の最短経路がそうしたステップで終わるときは、チャートはそのステップを描く。
+- コマンドは、書かれたとおりの設定で、ワーカー 1 つの TLC を使って規則を確かめる。規則が破れると、コマンドはその規則を除いて TLC をもう一度実行し、どの規則も破れなくなるまで繰り返す。最初に規則が破れたあとは、大きなモデルが終わらずに動き続けないよう、各実行は異なる状態が 100,000 個に達した時点で止まる。実行がその上限に達するか、エラーで止まったときは、レポートは確かめなかった規則を「Rules not checked」（確かめなかった規則）の下に挙げ、チャートはそれらに印を付けない。確かめていない規則は、成り立つことも破れることもある。確かめるには、破れる規則を設定から除くか、モデルを小さくする。上限はモジュールを 1 つ足し、そのモジュールが TLC の変数の順序を変えるので、性質（property）については、上限のない実行とは異なる反例を TLC が見つけることがある。
+- `tlc.out` は、書かれたとおりの設定で TLC が出力したものである。破れる規則のバグの経路をチャートが示さないときは、その規則を見つけた実行で TLC が出力したものが `tlc-RULE.out` にある。TLC が最初の警告を繰り返すとき、素の TLC はそれを 2 回出力するが、`tlc.out` には 1 回しか表れない。TLC が、このコマンドの読む出力から 2 つ目を省くからである。これが起きるのは、Java を `-XX:+UseParallelGC` 付きで動かしたときだけである。そうでないときは、TLC の最初の警告はそのフラグを渡すようにという助言であり、TLC はそれを 1 回しか出力しない。
 
-## Show the chart
+## チャートを見せる（Show the chart）
 
-Show `chart.mmd` to the user as a `mermaid` code block. The chart has a budget of 500 states, counted by TLC on the config as written. Above that, the chart draws only the paths to the rules that break, and when no rule breaks, the command writes no `chart.mmd`. It still checks each rule, and the report gives the state count and each bug path. To see the whole graph, make the model smaller.
+`chart.mmd` を、`mermaid` のコードブロックとしてユーザーに見せる。チャートには、書かれたとおりの設定で TLC が数えて 500 状態という予算がある。それを超えると、チャートは破れる規則への経路だけを描き、どの規則も破れないときは、コマンドは `chart.mmd` を書かない。それでもコマンドは各規則を確かめ、レポートは状態の数とそれぞれのバグの経路を示す。グラフ全体を見るには、モデルを小さくする。
 
-Render charts with Pele. When the user asks for an image, or a chart is too large to read as text, follow `references/render.md`. Do not use a different renderer unless the user asks for it.
+チャートは Pele で描画する。ユーザーが画像を求めたとき、またはチャートが大きすぎてテキストでは読めないときは、`references/render.md` に従う。ユーザーが求めない限り、別のレンダラーを使わない。
 
-## Hand off
+## 引き渡し（Hand off）
 
-Give each chart and its Mermaid text to the person who must decide. Add one line for each bug: the rule, the reader's sentence for that rule, and the path as the report numbers it. Say what the model leaves out. Give the command that makes the files again, with a new `--out` folder.
+各チャートとその Mermaid のテキストを、判断しなければならない人に渡す。バグごとに 1 行を添える。規則、その規則についての読み手の文、レポートが番号を振ったとおりの経路である。モデルが省いているものを述べる。新しい `--out` のフォルダを指定して、ファイルを作り直すコマンドを示す。
 
-When the model describes code, replay each bug path against the real code, as a test or a live repro, one step for each action. If a bug does not occur, think that the model is wrong until you show that it is not.
+モデルがコードを記述しているときは、各バグの経路を、テストかライブでの再現として、アクションごとに 1 ステップずつ実際のコードに対して再現する。バグが起きないなら、モデルが誤っていないことを示すまでは、モデルが誤っていると考える。

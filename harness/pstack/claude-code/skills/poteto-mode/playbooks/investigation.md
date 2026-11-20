@@ -1,14 +1,14 @@
-### Investigation
+### 調査（Investigation）
 
-**You own the answer. Plan, route, write.**
+**答えに責任を持つ。計画し、振り分け、書く。**
 
-Investigation requests are read-only. They produce a cited explanation or a recommendation, not a code change.
+調査の依頼は読み取り専用である。出すのは出典を示した説明か推奨であり、コードの変更ではない。
 
-1. Trace the code the question is about. For motivation questions, also route through the **why** skill.
-2. Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.
-3. Produce the output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.
-4. Apply the **unslop** skill to the reply.
+1. 問われているコードを追う。動機を問う質問なら、**why** スキルにも振り分ける。
+2. スループットのチェックポイント（throughput checkpoint）は 1 行のままにする（`throughput checkpoint: n/a, read-only investigation`）。
+3. 成果を、概要（Overview）/ 主要な概念（Key Concepts）/ 仕組み（How It Works）/ どこに何があるか（Where Things Live）/ 落とし穴（Gotchas）の構成で出す。依頼が選択肢のどれを選ぶかの決定なら、代わりにトレードオフの表を付けた推奨を出す。
+4. 返答に **unslop** スキルを適用する。
 
-No PR, no babysit, no `architect` unless the investigation precedes a code change. If it does, hand back to the user and re-route to Bug fix or Feature.
+調査がコードの変更に先立つものでない限り、PR も、見守り（babysit）も、`architect` も行わない。先立つものなら、ユーザーに戻し、バグ修正（Bug fix）か機能開発（Feature）に振り分け直す。
 
-**Reply:** the investigation output. For "are we sure?" answers, include your real judgment with reasons. Push back if the premise is wrong (see Autonomy).
+**返答：** 調査の成果。「本当に大丈夫か」への答えでは、理由を添えて本当の判断を書く。前提が間違っていれば反論する（自律（Autonomy）の節を参照）。

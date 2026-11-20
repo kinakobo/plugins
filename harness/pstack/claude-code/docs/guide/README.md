@@ -1,38 +1,38 @@
-# The pstack guide
+# pstack のガイド（The pstack guide）
 
-pstack works best when you stop micromanaging the agent. You describe what you want and how you'll know it's done. `/poteto-mode` picks the playbook, runs the other skills as the steps need them, and shows you the evidence. This guide teaches that habit with realistic prompts.
+pstack が最もうまく働くのは、エージェントを細かく管理するのをやめたときである。ユーザーは、何をしてほしいかと、終わったことをどう確かめるかを書く。`/poteto-mode` はプレイブックを選び、手順が必要とするときにほかのスキルを実行し、証拠を示す。このガイドは、現実的なプロンプトを例に、その習慣を教える。
 
-Here's what you'll learn:
+このガイドで学ぶことは次のとおりである。
 
-1. [Set up pstack](./01-setup.md). Install the plugin and pick your models.
-2. [Route work through `/poteto-mode`](./02-poteto-mode.md). Give it a goal and watch it pick a playbook.
-3. [Understand the code](./03-understand.md). A read-only investigation, then `/how`, `/why`, `/teach`, and `/recall` before you edit anything.
-4. [Design the change](./04-design.md). `/architect`, `/arena`, `/swarm`, `/interrogate`, prototypes, and plans before code locks in a shape.
-5. [Build and clean the change](./05-build-and-clean.md). The build playbooks, `/tdd`, `/unslop`, and `/no-comments`.
-6. [Verify and ship](./06-verify-and-ship.md). Prove behavior on the real app, formally verify what tests rarely reach, vet numbers with `/benchmark-checklist`, then open a focused PR and drive it to merged.
-7. [Run work while you sleep](./07-overnight.md). Trust before loops, an overnight contract, a decision log you can audit, and Projects and automations that scale past one agent.
-8. [Steer with principle names](./08-principles.md). The 24 names that redirect an agent mid-task.
-9. [Make it yours](./09-make-it-yours.md). Your own mode, `/correct` for repeated mistakes, and how to test a skill change.
-10. [Recipes and pitfalls](./10-recipes-and-pitfalls.md). Prompts to copy and mistakes to skip.
+1. [pstack をセットアップする](./01-setup.md)。プラグインをインストールし、モデルを選ぶ。
+2. [`/poteto-mode` を通して作業を進める](./02-poteto-mode.md)。目標を与え、プレイブックを選ぶ様子を見る。
+3. [コードを理解する](./03-understand.md)。何かを編集する前に、読み取りだけの調査を行い、続いて `/how`、`/why`、`/teach`、`/recall` を使う。
+4. [変更を設計する](./04-design.md)。コードで形が固まる前に、`/architect`、`/arena`、`/swarm`、`/interrogate`、プロトタイプ、計画を使う。
+5. [変更を作り、整える](./05-build-and-clean.md)。作るためのプレイブック、`/tdd`、`/unslop`、`/no-comments`。
+6. [検証してリリースする](./06-verify-and-ship.md)。実際のアプリで振る舞いを証明し、テストではめったに届かない部分を形式検証し、`/benchmark-checklist` で数値を吟味してから、焦点を絞った PR を開いてマージまで進める。
+7. [寝ているあいだに作業を進める](./07-overnight.md)。ループの前に信頼を得ること、夜間の無人実行の取り決め、監査できる決定ログ、そして 1 つのエージェントを超えて規模を広げる Projects とオートメーション。
+8. [原則の名前でエージェントを導く](./08-principles.md)。作業の途中でエージェントの向きを変える 24 の名前。
+9. [自分のものにする](./09-make-it-yours.md)。自分専用のモード、繰り返される間違いのための `/correct`、スキルの変更を試す方法。
+10. [レシピと落とし穴](./10-recipes-and-pitfalls.md)。そのまま使えるプロンプトと、避けるべき間違い。
 
-Read the pages in order the first time. After that, each page stands alone.
+最初はページを順番に読む。その後は、どのページも単独で読める。
 
-When you're stuck, or can't tell which skill fits, type [`/poteto-help`](../../skills/poteto-help/SKILL.md) with your question:
+行き詰まったときや、どのスキルが合うかわからないときは、[`/poteto-help`](../../skills/poteto-help/SKILL.md) に続けて質問を入力する。
 
 ```text
 /poteto-help which skill should i use to review this branch?
 ```
 
-It answers, hands you a prompt to send, and links the skill or guide page the answer came from. It doesn't start the work, because a pstack run spends real tokens, so you send the prompt when you're ready. It runs only when you type it.
+このスキルは質問に答え、送るためのプロンプトを渡し、答えの出典となったスキルかガイドのページへのリンクを示す。pstack の実行は実際にトークンを消費するので、このスキルは作業を始めない。準備ができたら、ユーザーがそのプロンプトを送る。このスキルは、入力したときだけ動く。
 
-## If you only remember one thing
+## 1 つだけ覚えるなら（If you only remember one thing）
 
-Give the agent a goal and a way to check it, in your own words:
+目標と、それを確かめる方法を、自分の言葉でエージェントに伝える。
 
 ```text
 /poteto-mode the export writes duplicate rows when a retry lands mid-run. repro first, then fix and verify.
 ```
 
-You don't need to name a playbook or list skills. "repro first" and a checkable outcome are all the routing signal `/poteto-mode` needs. It matches the Bug fix playbook, copies the steps into a todo list, and calls the right skills as each step fires.
+プレイブックの名前を挙げたり、スキルを列挙したりする必要はない。`/poteto-mode` が振り分けに必要とする手がかりは、「repro first」（まず再現する）と、確かめられる結果だけである。`/poteto-mode` はバグ修正（Bug fix）のプレイブックを選び、手順を todo list に写し、各手順の実行に合わせて適切なスキルを呼ぶ。
 
-Next: [Set up pstack](./01-setup.md).
+次: [pstack をセットアップする](./01-setup.md)。

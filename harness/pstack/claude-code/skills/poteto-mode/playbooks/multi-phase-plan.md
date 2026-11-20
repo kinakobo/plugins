@@ -1,11 +1,11 @@
-### Multi-phase or multi-PR plan
+### 複数フェーズ・複数 PR の計画（Multi-phase or multi-PR plan）
 
-**You own the plan, not the code. The plan is a checklist an owner runs box by box and the operator audits from the evidence.** The plan is the deliverable. Do not implement.
+**コードではなく計画に責任を持つ。計画は、担当がチェックボックスを 1 つずつ埋めながら実行し、オペレーターが証拠から監査するチェックリストである。** 計画そのものが成果である。実装はしない。
 
-1. When the change is one or two files with an obvious approach, skip the plan. Say so and stop.
-2. Settle open questions by prototype before you write, per `playbooks/prototype.md`. Ask the operator only about a product or preference call that no run can settle.
-3. Write the plan file. Open with what changes, the PR ids in landing order, and the dependency graph, which says which PRs are independent and branch from trunk, which wait for which, and the files each may touch. Then one section per PR. One PR is one change with its own evidence (the **sequence-verifiable-units** principle skill). Each section has checkboxes for what it depends on, the files it edits, the one change it builds, the result you see, and its verification.
-4. Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Each live box drives the real surface with a concrete scenario and a pass predicate. The perf box names the metric, the probe, the trunk baseline measured first, and the number that fails. A PR that changes an interaction waits for the operator's review before merge.
-5. Hand back the plan path and stop. Execution starts on the operator's explicit go.
+1. 変更が 1〜2 ファイルで、進め方が明らかなら、計画は省く。そう伝えて止まる。
+2. 書く前に、未解決の問いを `playbooks/prototype.md` に従ってプロトタイプで決着させる。オペレーターに尋ねるのは、何を実行しても決着しない、製品の判断や好みの判断だけにする。
+3. 計画のファイルを書く。冒頭に、何が変わるか、マージする順に並べた PR の ID、依存関係のグラフを書く。グラフには、どの PR が独立していて trunk から分岐するか、どの PR がどれを待つか、それぞれが触ってよいファイルを示す。その後に、PR ごとに 1 つの節を置く。1 つの PR は、それ自身の証拠を持つ 1 つの変更である（**sequence-verifiable-units** 原則スキル）。各節には、依存するもの、編集するファイル、作る 1 つの変更、目で見て確かめる結果、検証のそれぞれについてチェックボックスを置く。
+4. テストだけでは検証として足りない。PR が検証済みになるのは、unit（単体）、live（実環境）、perf（性能）のボックスがすべてチェックされたときだけである。live の各ボックスでは、具体的なシナリオと合格の条件を決めて、実際の画面を操作する。perf のボックスには、指標、計測の手段、最初に測った trunk のベースライン、不合格とする数値を書く。インタラクションを変える PR は、マージの前にオペレーターのレビューを待つ。
+5. 計画のパスを返して止まる。実行は、オペレーターが明示的に開始を指示してから始める。
 
-**Reply:** the plan path, the PR ids with their dependencies and the review-gated set, and what stays unproven.
+**返答：** 計画のパス、PR の ID とその依存関係、レビュー待ちにする PR の一覧、証明されないまま残るもの。

@@ -1,15 +1,15 @@
 ---
 name: principle-make-operations-idempotent
-description: "Apply when designing commands, lifecycle steps, or processing loops that run amid crashes, restarts, and retries. Converge to the same end state regardless of partial prior runs."
+description: "クラッシュ、再起動、リトライが起きる中で動くコマンド、ライフサイクルの手順、処理ループを設計するときに適用する。以前の実行が途中で終わっていても、同じ最終状態に収束させる。"
 disable-model-invocation: true
 ---
 
-# Make Operations Idempotent
+# 操作を冪等にする（Make Operations Idempotent）
 
-Design every state-changing operation to converge to the correct state however many times it runs and wherever the previous run stopped.
+状態を変える操作はすべて、何回実行しても、前回の実行がどこで止まっていても、正しい状態に収束するように設計する。
 
-Derive each step from the state that exists, not from what the previous run meant to do. Read the current state, compare it to the goal, and apply only the difference.
+各手順は、前回の実行がしようとしていたことではなく、実際に存在する状態から導く。現在の状態を読み、目標と比べ、差分だけを適用する。
 
-Anything a run leaves behind (a lock, a temporary file, a half-written record, a claimed job) must be recognizable as stale by the next run, by evidence that holds wherever the previous run could have stopped. Write to a temporary path and rename it into place.
+実行が残すもの（ロック、一時ファイル、書きかけのレコード、確保済みのジョブ）は、前回の実行がどこで止まりえたとしても成り立つ証拠によって、次の実行が古いものと判別できなければならない。一時的なパスに書き込み、それを本来の場所にリネームする。
 
-The test: what happens if this runs twice? What if the previous run crashed at every possible point? If the answer depends on what was left behind, add a reconciliation step.
+判定の問いは次のとおりである。これを 2 回実行したら何が起きるか。前回の実行が、ありうるすべての地点でクラッシュしていたらどうなるか。答えが残されたものに左右されるなら、現状を目標と突き合わせて整える手順（reconciliation）を足す。

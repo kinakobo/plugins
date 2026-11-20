@@ -1,14 +1,14 @@
-### Prototype
+### プロトタイプ（Prototype）
 
-**You own the design decision, not the code. The prototype is a throwaway instrument. The real build follows Feature.**
+**コードではなく、設計の判断に責任を持つ。プロトタイプは使い捨ての道具である。本番の実装は機能開発（Feature）に従う。**
 
-The one playbook where the Laziness Protocol's "smallest change" and the verification bar invert. Speed over polish, code quality does not matter, no planning. The rigor is in picking the right design cheaply. Propose variations the user didn't ask for, throw an approach away and try another.
+怠惰のプロトコル（Laziness Protocol）の「最小の変更」と検証の水準が逆転する、唯一のプレイブックである。仕上がりより速さを優先し、コードの品質は問わず、計画も立てない。厳密さは、正しい設計を安く選ぶことに注ぐ。ユーザーが求めていない案も提案し、ある方法を捨てて別の方法を試す。
 
-1. Scope the decision the prototype exists to make: which layout, which interaction, which density, or for an empirical fork which behavior, timing, or approach. No decision means no prototype. Route to Feature.
-2. Gather references when the design space is open. Search for prior art, summarize a moodboard of themes, palettes, and layouts, let the user pick directions before building. Skip when the direction is set.
-3. Build throwaway in an isolated scratch dir, separate from production source. For a visual decision, vanilla HTML/CSS/JS or the lightest stack that renders the idea, CDN deps, a dev server with hot reload. For a behavioral or timing decision, the smallest script that exercises the question. No production framework, no tests, no abstractions.
-4. When comparing alternatives, build them behind one switcher (buttons or a keypress), each variant labeled. This is the **exhaust-the-design-space** principle skill made cheap.
-5. Verify on the matching surface. For a visual decision, screenshot each variant via the control skill and drive the interaction. For a behavioral or timing decision, observe the thing you are deciding by logging the timing, printing the output, or watching the render. The observation is the test here, not an assertion.
-6. Present alternatives, tradeoffs, and a recommendation. The output is the decision plus the throwaway artifact, not shippable code. Hand the chosen direction to **Feature** (or `architect` for the shape) for the real build.
+1. プロトタイプで下す判断の範囲を決める。どのレイアウトか、どのインタラクションか、どの密度か、あるいは実際に試さないと決まらない分かれ道なら、どの振る舞い、タイミング、方法か。下す判断がないなら、プロトタイプは作らない。機能開発（Feature）に振り分ける。
+2. 設計の選択肢が広く残っているときは、参考資料を集める。先行事例を探し、テーマ、配色、レイアウトのムードボードをまとめ、作る前にユーザーに方向を選んでもらう。方向が決まっているなら省く。
+3. 本番のソースとは切り離した作業用ディレクトリで、使い捨てのものを作る。見た目の判断なら、素の HTML/CSS/JS か、案を描画できる最も軽い構成を使い、依存は CDN から読み込み、ホットリロード付きの開発サーバーを使う。振る舞いやタイミングの判断なら、その問いを確かめる最小のスクリプトを書く。本番のフレームワークも、テストも、抽象化も使わない。
+4. 案を比べるときは、1 つの切り替え（ボタンかキー操作）の裏にすべての案を作り、各案にラベルを付ける。これは **exhaust-the-design-space** 原則スキルを安く実践する方法である。
+5. 対応する画面で検証する。見た目の判断なら、操作スキル（control skill）で各案のスクリーンショットを撮り、操作を実際に行う。振る舞いやタイミングの判断なら、タイミングをログに出す、出力を表示する、描画を見るなどして、判断の対象を観察する。ここでは、アサーションではなく観察がテストになる。
+6. 選択肢、トレードオフ、推奨を示す。出すものは、判断と使い捨ての成果物であり、リリースできるコードではない。選んだ方向を **機能開発（Feature）**（形を決めるなら `architect`）に渡し、本番の実装に進める。
 
-**Reply:** the variants explored, the evidence (screenshots for a visual decision, the observed output or timing for a behavioral one), tradeoffs, your recommendation, and the scratch path. Say plainly that the prototype is throwaway.
+**返答：** 試した案、証拠（見た目の判断ならスクリーンショット、振る舞いの判断なら観察した出力やタイミング）、トレードオフ、推奨、作業用ディレクトリのパス。プロトタイプが使い捨てであることをはっきり述べる。

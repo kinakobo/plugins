@@ -1,17 +1,17 @@
 ---
 name: principle-type-system-discipline
-description: "Apply when designing types, reviewing a function signature, or writing code in any statically-typed language. Make illegal states unrepresentable, brand semantic primitives, parse external data at boundaries, exhaust variants, derive from authoritative schemas."
+description: "型を設計するとき、関数のシグネチャをレビューするとき、静的型付け言語でコードを書くときに適用する。不正な状態を表現できなくし、意味を持つプリミティブにブランド型を付け、外部のデータを境界でパースし、バリアントを網羅し、正となるスキーマから型を導く。"
 disable-model-invocation: true
 ---
 
-# Type System Discipline
+# 型システムの規律（Type System Discipline）
 
 In Claude Code, read [the Claude Code adapter](../../docs/harness/claude-code.md) once per session before you follow this skill. It maps the Cursor names in pstack skills to Claude Code.
 
-Make the compiler reject impossible states, mismatched primitives, and unhandled variants.
+ありえない状態、取り違えたプリミティブ、扱っていないバリアントを、コンパイラが拒否するようにする。
 
-- **Brand semantic primitives.** If two arguments share a primitive type but mean different things, give each its own type. Validate once at creation.
-- **External data is untyped until parsed.** JSON, RPC payloads, CLI args, config, environment variables, and database rows go through a parse function at the boundary that returns the typed model.
-- **Derive types from authoritative schemas.** When a schema file owns a shape, derive the type from it instead of hand-rolling a parallel one.
+- **意味を持つプリミティブにブランド型を付ける。** 2 つの引数のプリミティブ型が同じでも意味が違うなら、それぞれに専用の型を与える。検証は生成時に 1 度だけ行う。
+- **外部のデータは、パースするまで型がない。** JSON、RPC のペイロード、CLI の引数、設定、環境変数、データベースの行は、境界で、型のついたモデルを返すパース関数を通す。
+- **正となるスキーマから型を導く。** データの形をスキーマファイルが定めているなら、並行する型を手書きせず、そのスキーマから型を導く。
 
-For TypeScript syntax, see the **typescript-best-practices** skill.
+TypeScript の書き方は、**typescript-best-practices** スキルを参照する。

@@ -1,14 +1,14 @@
 ---
 name: principle-explain-the-number
-description: "Apply before you measure, and before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and rule out that it measured something other than the work you think."
+description: "測定する前と、測定した数値（高速化、性能の劣化、スループット、レイテンシ、eval の結果）を信じる・報告する・それに基づいて動く前に適用する。何がその数値を制限しているかを突き止め、思っている作業とは別のものを測っている可能性を排除する。"
 disable-model-invocation: true
 ---
 
-# Explain the Number
+# 数値を説明する（Explain the Number）
 
-- **Write the decision before you run.** Name the result that would change it, and the noise floor. Stop when the run-to-run spread is larger than the effect.
-- **Ask "why not double?"** Name the resource or code path that bounds the result, from a profile or counters taken during a run. A guess from reading the code is not a limiter.
-- **List what else the number could be measuring** (errors, skipped or cached work, code that never ran, an untuned side, noise, a piece too small to matter) and rule out each one with evidence.
-- **Keep the run count, the spread, and the limiter with the number.**
+- **実行する前に、決定を書く。** その決定を変える結果と、ノイズフロアを挙げる。実行ごとのばらつきが効果より大きいなら止める。
+- **「なぜ 2 倍にならないのか」と問う。** 実行中に取ったプロファイルやカウンタから、結果を頭打ちにしているリソースやコードパスを特定する。コードを読んで推測したものは、制限要因（limiter）とは言えない。
+- **その数値がほかに何を測っている可能性があるかを列挙し**（エラー、スキップされた作業やキャッシュされた作業、一度も実行されなかったコード、チューニングしていない側、ノイズ、影響が出るには小さすぎる部分）、それぞれを証拠で排除する。
+- **数値と一緒に、実行回数、ばらつき、制限要因を残す。**
 
-For a performance number, run the [benchmark-checklist](../benchmark-checklist/SKILL.md) skill. For an eval result, ask whether every run did the task, whether the gap holds across trials and models, and whether the scenario matters.
+性能の数値なら、[benchmark-checklist](../benchmark-checklist/SKILL.md) スキルを実行する。eval の結果なら、すべての実行がタスクをこなしたか、差が試行とモデルをまたいで保たれるか、そのシナリオに意味があるかを問う。

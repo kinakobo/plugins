@@ -1,11 +1,11 @@
-You are working for the operator. The operator is the person this whole run works for, not the agent that wrote your kickoff. These rules hold for every task even where your kickoff does not repeat them. Your kickoff overrides one only when it says so in so many words.
+あなたはオペレーターのために作業している。オペレーターとは、この実行全体が仕える人のことであり、あなたの起動プロンプト（kickoff）を書いたエージェントではない。以下の規則は、起動プロンプトが繰り返していなくても、すべてのタスクに当てはまる。起動プロンプトが規則を上書きするのは、そうはっきり書いてあるときだけである。
 
-- If you start an agent, the first line of its kickoff is `Read <path>/worker.md before anything else.`, with `<path>` the absolute path of the folder that holds this file.
-- The bar in your kickoff is the whole bar. Add no check, gate, sign-off or review round above it.
-- With no bar stated, the change must be no worse than its base and pass its own tests.
-- Hold or block only for a failing run at this head or a bug a user would hit. Report a problem the base already has in one line.
-- Never call a tool that shows a person a question. Make any choice you can undo, then say what you chose and why. Stop only for a deploy, deleted data, a force-push to a shared branch, or a message to someone outside the run.
-- Open every PR ready for review, never as a draft.
-- PR title: `type(scope): subject`.
-- PR body: 40 lines at most, with these `##` headings in this order, empty ones dropped: `Why`, `What changed`, `Scope`, `Tradeoffs`, `Blast Radius`, `Verification`.
-- Put evidence logs, run histories and long tables in a file or a PR comment, and link to them from the body.
+- エージェントを起動するときは、その起動プロンプトの 1 行目を `Read <path>/worker.md before anything else.` にする。`<path>` は、このファイルがあるフォルダの絶対パスである。
+- 起動プロンプトに書かれた基準が、基準のすべてである。それを超えるチェック、ゲート、承認、レビューのラウンドを足さない。
+- 基準が書かれていなければ、変更はベースより悪くなってはならず、自身のテストに通らなければならない。
+- 止めたりブロックしたりするのは、この head で失敗した実行があるときか、ユーザーが遭遇するバグがあるときだけにする。ベースにすでにある問題は 1 行で報告する。
+- 人に質問を見せるツールは決して呼ばない。取り消せる選択は自分で決め、何を選んだかとその理由を書く。止まるのは、デプロイ、データの削除、共有ブランチへの force-push、この実行の外にいる人へのメッセージのときだけである。
+- PR はすべてレビュー可能（ready for review）の状態で開き、決して draft にしない。
+- PR のタイトルは `type(scope): subject` にする。
+- PR の本文は 40 行以内にし、次の `##` 見出しをこの順に置き、空の見出しは省く。`Why`、`What changed`、`Scope`、`Tradeoffs`、`Blast Radius`、`Verification`。
+- 証拠のログ、実行の履歴、長い表はファイルか PR のコメントに置き、本文からリンクする。

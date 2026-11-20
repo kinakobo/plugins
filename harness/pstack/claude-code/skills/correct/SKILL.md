@@ -1,32 +1,32 @@
 ---
 name: correct
-description: "Find the mistakes agents keep repeating in this repo and make each one impossible. Try architecture first, then types, then a lint whose error names the fix, then a test, and write docs last. Prove each check fails on a real past mistake. Repeat this each time the operator corrects you. Use for /correct."
+description: "このリポジトリでエージェントが繰り返している誤りを見つけ、それぞれを起こりえないようにする。まずアーキテクチャ、次に型、次にエラーが修正方法を示す lint、次にテストを試し、ドキュメントは最後に書く。各チェックが過去の実際の誤りで失敗することを証明する。オペレーターに訂正されるたびに、これを繰り返す。/correct で使う。"
 disable-model-invocation: true
 ---
 
-# Correct
+# 誤りを正す（Correct）
 
-The operator keeps correcting agents in this repo for the same mistakes. Change the repo so the next agent can't make them.
+オペレーターは、このリポジトリで同じ誤りについてエージェントを何度も訂正している。次のエージェントがその誤りを犯せないように、リポジトリを変える。
 
-Assume every contributor is an agent that sees only the files it opened, copies the nearest example, and takes the shortest path that compiles. Design the repo so a change that looks right from one file is right for the whole repo.
+貢献者はみな、開いたファイルしか見ず、いちばん近くにある例をまね、コンパイルが通る最短の道を選ぶエージェントだと仮定する。1 つのファイルから見て正しく見える変更が、リポジトリ全体にとっても正しくなるように、リポジトリを設計する。
 
-## Find the mistake classes
+## 誤りの類型を見つける（Find the mistake classes）
 
-First, read recent commits, reverts, review comments, agent instruction files, and comments that explain workarounds. Group the mistakes into classes. A class counts once it has happened twice.
+まず、最近のコミット、revert、レビューコメント、エージェント向けの指示ファイル、回避策を説明しているコメントを読む。誤りを類型にまとめる。類型として数えるのは、2 回起きたものである。
 
-## Fix each class at the highest level that works
+## 各類型を、有効な最も高いレベルで直す（Fix each class at the highest level that works）
 
-1. **Eliminate it with architecture.** Give each piece of state one owner and each task one supported way. Hide internals so the wrong import fails. Replace hand-synced lists with one source of truth. Delete old ways and dead code an agent would copy.
-2. **Enforce it with types so the bad state can't be written.** If bad code still compiles, add a lint or CI check whose error names the file, type, or function to use instead. If the pattern is already common, fail only when a change adds more.
-3. **Test the behavior.** Fix or delete any test that still passes when the behavior it checks breaks, or that fails when only the internals change.
-4. **Write docs or agent rules last, only for judgment calls.** Nothing fails when an agent skips them.
+1. **アーキテクチャでなくす。** 状態ごとに持ち主を 1 つにし、タスクごとにサポートするやり方を 1 つにする。内部を隠し、誤った import が失敗するようにする。手で同期している一覧を、1 つの信頼できる情報源に置き換える。エージェントがまねしそうな古いやり方とデッドコードを削除する。
+2. **型で強制し、悪い状態を書けないようにする。** それでも悪いコードがコンパイルを通るなら、代わりに使うべきファイル、型、関数をエラーで示す lint か CI のチェックを足す。そのパターンがすでに広く使われているなら、変更がそれを増やしたときだけ失敗させる。
+3. **振る舞いをテストする。** 確かめている振る舞いが壊れても通ってしまうテストや、内部が変わっただけで失敗するテストは、直すか削除する。
+4. **ドキュメントやエージェント向けのルールは最後に、判断が必要なことについてだけ書く。** エージェントがそれを読み飛ばしても、何も失敗しない。
 
-## Fix and prove
+## 直して証明する（Fix and prove）
 
-Then fix the most frequent classes now, one commit each. Prove each new check fails on a real past mistake. Run the same command locally and in CI. Exceptions go on the offending line with a reason, an expiry date, and a human's approval.
+次に、最も頻度の高い類型をいま直す。1 類型につき 1 コミットにする。新しいチェックがそれぞれ、過去の実際の誤りで失敗することを証明する。ローカルと CI で同じコマンドを実行する。例外は、違反している行に、理由、有効期限、人間の承認を添えて書く。
 
-## Keep the rule table
+## ルールの表を保つ（Keep the rule table）
 
-Last, keep a table in the agent instruction file that pairs each rule with what enforces it. When the operator corrects you, fix the mistake and add the rule. If the rule was already there and nothing enforces it, that's a repeat, so fix it at the highest level in the same change. Drop a rule once its mistake can't happen.
+最後に、エージェント向けの指示ファイルに、各ルールとそれを強制する仕組みを対にした表を置き、保守する。オペレーターに訂正されたら、誤りを直してルールを足す。そのルールがすでにあって、何もそれを強制していないなら、それは繰り返しなので、同じ変更の中で最も高いレベルで直す。誤りが起こりえなくなったルールは削除する。
 
-**Reply:** each class with its evidence, the level you picked, and why a higher level didn't work.
+**返答:** 各類型と、その証拠、選んだレベル、より高いレベルが使えなかった理由。

@@ -1,46 +1,46 @@
 ---
 name: create-verification-skill
-description: "Generate a project-local verification skill that drives your app the way a user does — any language, framework, or platform. Use for /create-verification-skill, \"make a control skill for this repo\", or when a project has no scripted way to prove UI/CLI/service behavior."
+description: "ユーザーと同じやり方でアプリを操作する、プロジェクトローカルの検証スキルを生成する。言語、フレームワーク、プラットフォームは問わない。/create-verification-skill、「このリポジトリの操作用スキルを作って」、またはプロジェクトに UI/CLI/サービスの振る舞いを証明するスクリプト化された手段がないときに使う。"
 disable-model-invocation: true
 ---
 
-# Create a verification skill
+# 検証スキルを作る（Create a verification skill）
 
 In Claude Code, read [the Claude Code adapter](../../docs/harness/claude-code.md) once per session before you follow this skill. It maps the Cursor names in pstack skills to Claude Code.
 
-Every serious project needs a scripted way to drive the real app and prove behavior: launch it, exercise a feature the way a user would, and capture evidence. This skill generates that as a project-local skill (`.cursor/skills/verify-<app>/`) tailored to the repo. You write the generator's output for the next agent, not for a human: it will be read cold, mid-task, by an agent that has never seen the app.
+本格的なプロジェクトにはどれも、実際のアプリを操作して振る舞いを証明するための、スクリプト化された手段が必要である。アプリを起動し、ユーザーと同じやり方で機能を動かし、証拠を記録する手段である。このスキルは、それをリポジトリに合わせたプロジェクトローカルのスキル（`.cursor/skills/verify-<app>/`）として生成する。生成するものは、人間ではなく次のエージェントに向けて書く。そのアプリを一度も見たことのないエージェントが、作業の途中で予備知識なしに読むからである。
 
-## 1. Interview the repo, not the user
+## 1. ユーザーではなくリポジトリに聞き取りをする（Interview the repo, not the user）
 
-Answer these from the codebase and only ask the user what you cannot observe:
+次の問いにはコードベースから答え、観察できないことだけをユーザーに尋ねる。
 
-- **Surface:** what does a user actually touch? A web UI, a CLI/TUI, a desktop app, an API, a mobile app, a library? A repo can have several; pick the primary one and note the rest.
-- **Run:** how does the app start locally? Prefer the repo's own documented dev command (package scripts, Makefile, README quickstart). Note ports, env vars, seed data, auth.
-- **Drive:** how can an agent interact with it programmatically? Existing harnesses first — Playwright/Cypress specs, expect scripts, PTY helpers, curl-able endpoints, a debug port. Only then pick a generic recipe: browser/CDP for web and Electron, a tmux/PTY harness for CLI/TUI, plain HTTP for services.
-- **Observe:** what evidence can be captured? Screenshots, terminal transcripts, response bodies, logs, exit codes, DB state.
-- **Isolate:** can two instances run side by side (ports, data dirs, profiles)? If not, say so in the generated skill: refusing to double-drive a shared instance beats corrupting the user's session.
+- **接点（Surface）:** ユーザーが実際に触れるのは何か。Web UI、CLI/TUI、デスクトップアプリ、API、モバイルアプリ、ライブラリのどれか。1 つのリポジトリが複数を持つこともある。主なものを 1 つ選び、残りは書き留める。
+- **起動方法（Run）:** アプリはローカルでどう起動するか。リポジトリ自身が文書化している開発用のコマンド（パッケージのスクリプト、Makefile、README のクイックスタート）を優先する。ポート、環境変数、シードデータ、認証を書き留める。
+- **操作（Drive）:** エージェントはプログラムからどうアプリを操作できるか。まず既存のハーネスを使う。Playwright/Cypress の spec、expect スクリプト、PTY のヘルパー、curl で呼べるエンドポイント、デバッグ用のポートなどである。汎用の手順を選ぶのはそのあとにする。Web と Electron にはブラウザ/CDP、CLI/TUI には tmux/PTY のハーネス、サービスには素の HTTP を使う。
+- **観察（Observe）:** どんな証拠を取得できるか。スクリーンショット、ターミナルのトランスクリプト、レスポンスの本文、ログ、終了コード、DB の状態など。
+- **分離（Isolate）:** 2 つのインスタンスを並べて動かせるか（ポート、データディレクトリ、プロファイル）。できなければ、生成するスキルにそう書く。共有のインスタンスを二重に操作するのを断るほうが、ユーザーのセッションを壊すよりよい。
 
-If the checkout doesn't build or start as-is, fix that first (or report it precisely) before generating; a skill written against a broken base teaches wrong steps. When an irrelevant missing asset blocks startup (a static dir the API never serves, a sample config), the generated skill may create it, clearly marked as verification scaffolding, and remove it in cleanup.
+チェックアウトがそのままではビルドできない、または起動できないなら、生成する前にまずそれを直す（または正確に報告する）。壊れた土台に対して書いたスキルは、誤った手順を教えることになる。無関係なアセットが欠けていて起動を妨げているとき（API が一度も配信しない静的ファイルのディレクトリ、サンプルの設定など）は、生成するスキルがそれを作ってよい。その場合は検証用の足場であることをはっきり示し、後片付けで削除する。
 
-## 2. Generate the skill
+## 2. スキルを生成する（Generate the skill）
 
-Write `.cursor/skills/verify-<app>/SKILL.md` with YAML frontmatter (`name: verify-<app>` and a `description` that names the app, the surface, and when to reach for it — without frontmatter the skill never registers) and these sections, each grounded in what the interview actually found (no placeholders left):
+`.cursor/skills/verify-<app>/SKILL.md` を、YAML の frontmatter（`name: verify-<app>` と、アプリ、接点、使うべき場面を挙げた `description`。frontmatter がないとスキルは決して登録されない）と次の節で書く。どの節も、聞き取りで実際にわかったことに基づかせる（プレースホルダーは残さない）。
 
-- **Launch:** the exact command that starts the app for verification, and how to tell it's ready (a log line, a prompt). Launch must reach a usable state from an empty data dir, including any migrations and seed data. Ready means usable, not just that a process answers. A database health check can pass while its init scripts are still running. Include teardown. For a short-lived CLI or TUI there is no server to keep alive: launch means build the binary (or install deps) once, then start each drive in its own isolated PTY or tmux session.
-- **Doctor:** one read-only check that answers "is this instance worth driving?" — process up, right version/build, port owned by us, auth valid. An agent runs this first whenever anything looks off.
-- **Drive:** the harness recipe with real selectors/commands from this repo, not examples. Prefer stable handles (ARIA labels, data attributes, prompt strings, route paths) over coordinates and tab order.
-- **Evidence:** what to capture for a proof and where it goes. State the proof standards: exercise the real user path, not internal setters or test-only endpoints; capture the action and the resulting state, not just the final screen; verify side effects (files written, rows inserted, messages sent) alongside what's visible; mocks only where a production boundary already isolates the external system. When the safe path is a dry-run or test mode, verify what it actually skips by observing (files, network, git refs) rather than trusting its name: some dry-runs still touch the network or open a browser.
-- **Cleanup:** how to tear down instances the run created. Never kill by process name; kill what you started. Cleanup removes instances and scratch state, never the evidence: proof artifacts survive the teardown, in a location the skill names.
-- **Helpers:** any script the skill ships is executable and its invocation is shown in the skill body. A helper the reader has to reverse-engineer is not a helper.
+- **起動（Launch）:** 検証のためにアプリを起動する正確なコマンドと、準備ができたことの見分け方（ログの行、プロンプト）。起動の手順は、空のデータディレクトリから、マイグレーションとシードデータを含めて、使える状態まで到達しなければならない。準備ができたとは、プロセスが応答するだけでなく、使える状態であることを意味する。データベースのヘルスチェックは、初期化スクリプトがまだ動いている間にも通ることがある。停止の手順も含める。寿命の短い CLI や TUI には、動かし続けるサーバーがない。その場合の起動とは、バイナリを一度ビルドし（または依存関係を一度インストールし）、操作のたびにそれぞれ分離した PTY か tmux のセッションで起動することである。
+- **診断（Doctor）:** 「このインスタンスは操作する価値があるか」に答える、読み取り専用のチェックを 1 つ。プロセスが動いている、バージョン/ビルドが正しい、ポートを自分たちのプロセスが使っている、認証が有効である、を確かめる。何かがおかしく見えたら、エージェントはいつもまずこれを実行する。
+- **操作（Drive）:** このリポジトリの実際のセレクターやコマンドを使ったハーネスの手順。例は書かない。座標やタブ順より、安定した目印（ARIA ラベル、data 属性、プロンプトの文字列、ルートのパス）を優先する。
+- **証拠（Evidence）:** 証明のために何を記録し、どこに置くか。証明の基準を明記する。内部のセッターやテスト専用のエンドポイントではなく、ユーザーの実際の操作経路を通す。最後の画面だけでなく、操作とその結果の状態を記録する。目に見えるものと合わせて副作用（書かれたファイル、挿入された行、送られたメッセージ）を確かめる。モックは、本番の境界がすでに外部システムを切り離している箇所にだけ使う。安全な経路が dry-run やテストモードのときは、その名前を信じず、実際に何を省いているかを観察して（ファイル、ネットワーク、git の ref）確かめる。dry-run でも、ネットワークに触れたりブラウザを開いたりするものがある。
+- **後片付け（Cleanup）:** 実行が作ったインスタンスをどう停止するか。決してプロセス名で kill しない。自分が起動したものを kill する。後片付けで消すのはインスタンスと一時的な状態であり、証拠は決して消さない。証明の成果物は、スキルが指定する場所に、停止のあとも残る。
+- **ヘルパー（Helpers）:** スキルが同梱するスクリプトはどれも実行可能にし、その呼び出し方をスキルの本文に示す。読み手がリバースエンジニアリングしなければならないヘルパーは、ヘルパーではない。
 
-## 3. Seed the feature map
+## 3. 機能マップの最初の版を作る（Seed the feature map）
 
-Create `.cursor/skills/verify-<app>/features/README.md` plus one file per user-facing feature you can identify (aim for the top 3-5 to start, from routes, commands, menus, or docs). Follow the shape in [`references/feature-map-example/`](references/feature-map-example/), with a README index and one file per feature. Each file answers, from the user's point of view: what the feature is, how to reach it, how to drive it with the harness, and what observable end state proves it works. The four H2s are `Sub-features`, `How to get to it (user POV)`, `Driving it with <harness>`, and `Gotchas`. If the seed data lacks a precondition that a journey needs, the journey reports a failure and the reason goes in that feature's `Gotchas`. Never weaken the journey to make it pass. The map is the repo's maintained verification source; a proof that drives one convenient entry point is incomplete when the map lists others.
+`.cursor/skills/verify-<app>/features/README.md` と、特定できたユーザー向けの機能ごとに 1 つのファイルを作る（最初は、ルート、コマンド、メニュー、ドキュメントから上位 3〜5 個を目安にする）。[`references/feature-map-example/`](references/feature-map-example/) の形に従い、README の索引と、機能ごとに 1 つのファイルを置く。各ファイルは、ユーザーの視点から次の問いに答える。その機能は何か、どうたどり着くか、ハーネスでどう操作するか、観察できるどんな最終状態が動くことを証明するか。4 つの H2 は `Sub-features`、`How to get to it (user POV)`、`Driving it with <harness>`、`Gotchas` である。ある一連の操作（journey）が必要とする前提条件がシードデータに欠けているなら、その一連の操作は失敗を報告し、理由をその機能の `Gotchas` に書く。通すために一連の操作を弱めることは決してしない。マップは、リポジトリで保守される検証の情報源である。マップがほかの入口も挙げているなら、都合のよい入口を 1 つだけ操作した証明は不完全である。
 
-## 4. Prove the generated skill before handing it over
+## 4. 引き渡す前に、生成したスキルを証明する（Prove the generated skill before handing it over）
 
-Run its own instructions end to end once: launch, doctor, drive ONE mapped feature (one is enough; the map exists so later runs can cover the rest), capture evidence, clean up. After cleanup, confirm the evidence still exists at the named location — a cleanup that eats the proof fails this step. Fix what fails, and run the generated cleanup after every failed iteration too, so broken attempts don't strand processes and ports. A generated skill that was never executed is a draft, not a deliverable. If you proved it in a stand-in for the real target (a container in place of a fresh VM, a local stack in place of a remote one), list every setup step the stand-in did that the target will not. Those steps stay unverified until a run on the real target covers them.
+スキル自身の手順を最初から最後まで一度実行する。起動し、診断し、マップにある機能を 1 つだけ操作し（1 つで足りる。残りをあとの実行で網羅するためにマップがある）、証拠を記録し、後片付けをする。後片付けのあと、指定した場所に証拠がまだあることを確かめる。証明を消してしまう後片付けは、この手順で不合格である。失敗したところを直し、失敗した試行のたびにも生成した後片付けを実行して、壊れた試行がプロセスやポートを置き去りにしないようにする。一度も実行していない生成スキルは下書きであり、完成品ではない。本物の対象の代わりのもの（新しい VM の代わりのコンテナ、リモートのスタックの代わりのローカルのスタック）で証明したなら、代わりのものが行い、本物の対象では行われないセットアップの手順をすべて挙げる。それらの手順は、本物の対象での実行で確かめるまで未検証のままである。
 
-## 5. Offer the maintenance loop
+## 5. 保守のループを勧める（Offer the maintenance loop）
 
-Point the user at `/maintain-verification-skill` for keeping the map honest as the app changes. Suggest a cadence only if they ask.
+アプリが変わってもマップを正確に保つために、ユーザーに `/maintain-verification-skill` を案内する。実行の頻度は、尋ねられたときだけ提案する。

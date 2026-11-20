@@ -1,14 +1,14 @@
-# Render a chart
+# チャートを描画する（Render a chart）
 
-Render each `.mmd` file that you show with the npm package `pele@1.9.0`, and give the user the SVG. Install Pele once, outside the repo. Write each SVG next to its `.mmd` file, with the same name. The API is at https://pele.run/api. Pass `{ limit: 1_000_000, outputLimit: 8_000_000, maxEdges: 10_000 }` as the options of `render`. Pele's defaults are smaller than a chart of 500 states can be. When Pele throws a `PeleError`, show the user the Mermaid text and the error.
+見せる `.mmd` ファイルは、それぞれ npm パッケージ `pele@1.9.0` で描画し、ユーザーには SVG を渡す。Pele は、リポジトリの外に一度だけインストールする。各 SVG は、対応する `.mmd` ファイルの隣に同じ名前で書く。API は https://pele.run/api にある。`render` のオプションとして `{ limit: 1_000_000, outputLimit: 8_000_000, maxEdges: 10_000 }` を渡す。Pele の既定値は、500 状態のチャートがなりうる大きさより小さい。Pele が `PeleError` を投げたら、ユーザーに Mermaid のテキストとエラーを見せる。
 
-## Colors
+## 色（Colors）
 
-Pele ignores Mermaid `theme` and `themeVariables`. Set its `--pele-*` CSS variables on `.pele`. https://pele.run/theming lists them. The command gives each state the color class of its group, such as `class sN teal`. It marks each bad state with `class sN breaks` or `class sN mayBreak`, each state on the shortest path to a bug with `class sN bugPath`, and each state that a PROPERTY counterexample repeats forever with `class sN repeats`. Pele puts these classes on the state's node. Color the classes with CSS.
+Pele は、Mermaid の `theme` と `themeVariables` を無視する。Pele の `--pele-*` の CSS 変数を `.pele` に設定する。変数の一覧は https://pele.run/theming にある。コマンドは、`class sN teal` のように、各状態にそのグループの色のクラスを付ける。また、問題のある各状態に `class sN breaks` か `class sN mayBreak` を、バグへの最短経路上の各状態に `class sN bugPath` を、PROPERTY の反例が永遠に繰り返す各状態に `class sN repeats` を付けて印にする。Pele は、これらのクラスを状態のノードに付ける。クラスの色は CSS で付ける。
 
-The `.mmd` file has a `classDef` line for `breaks` and for `mayBreak`, so that any Mermaid viewer shows the bug marks. It has no `classDef` for the group colors, `bugPath`, or `repeats`. Pele writes each `classDef` color as a `style` attribute on the node, and a `style` attribute wins over a normal CSS rule. So the rules for the marks below use `!important`. Without it, a dark theme keeps the light mark colors. A bug mark sets the fill and the text, and `bugPath` and `repeats` set the border. Put the mark rules after the group colors, so that a mark shows over the group color.
+どの Mermaid のビューアーでもバグの印が見えるように、`.mmd` ファイルには `breaks` と `mayBreak` の `classDef` の行がある。グループの色、`bugPath`、`repeats` の `classDef` はない。Pele は各 `classDef` の色をノードの `style` 属性として書き、`style` 属性は通常の CSS のルールより優先される。そのため、下の印のルールは `!important` を使う。これがないと、ダークテーマでも印がライトテーマの色のままになる。バグの印は塗りと文字の色を設定し、`bugPath` と `repeats` は枠線を設定する。印がグループの色の上に表示されるよう、印のルールはグループの色のあとに置く。
 
-These colors are suggestions. They are the colors of the old skill. Put them in a `<style>` element at the start of each SVG. Each SVG then follows the light or dark setting of the viewer.
+これらの色は提案である。以前のスキルで使っていた色である。各 SVG の先頭にある `<style>` 要素にこれらを入れる。そうすると、各 SVG は閲覧者のライト・ダークの設定に従う。
 
 ```css
 .pele {

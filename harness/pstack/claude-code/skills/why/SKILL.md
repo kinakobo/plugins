@@ -1,9 +1,9 @@
 ---
 name: why
-description: "Use for 'why does X work this way', 'why we picked Y', design rationale, regressions, postmortems, or data-backed thresholds. Returns a cited read on decisions and tradeoffs. Use how for runtime behavior."
+description: "「X はなぜこう動くのか」「なぜ Y を選んだのか」、設計の根拠、リグレッション、ポストモーテム、データに基づくしきい値に使う。決定とトレードオフについて、出典を挙げた読み解きを返す。実行時の振る舞いについては how を使う。"
 disable-model-invocation: true
 ---
 
-# Why
+# なぜ（Why）
 
-Answer from the record, not the code: read the commits and PR discussions that introduced the target and each later change, and other sources if the trail is thin. Cite what the authors wrote, mark your own inferences as inferences, and say what the record does not answer.
+コードではなく記録から答える。対象を導入したコミットと PR の議論、およびその後の各変更のコミットと PR の議論を読み、記録が乏しければほかの情報源も読む。作者が書いたことを引用し、自分の推論は推論だと明記し、記録からは答えが出ないことを述べる。

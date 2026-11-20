@@ -1,72 +1,72 @@
 ---
 name: technical-writing
-description: "Layered technical-writing standard: Diátaxis structure, Google developer style sentences, STE instruction rules, Global English syntax. Use for /technical-writing or when writing or reviewing docs, RFCs, readmes, PR descriptions, or commit messages."
+description: "複数の層からなる技術文書の規範。Diátaxis による構成、Google 開発者スタイルの文、STE の指示文の規則、Global English の構文からなる。/technical-writing と言われたとき、またはドキュメント、RFC、README、PR の説明、コミットメッセージを書く・レビューするときに使う。"
 disable-model-invocation: true
 ---
 
-# Technical writing
+# 技術文書の書き方（Technical writing）
 
 In Claude Code, read [the Claude Code adapter](../../docs/harness/claude-code.md) once per session before you follow this skill. It maps the Cursor names in pstack skills to Claude Code.
 
-Write so a tired engineer understands on the first read.
+疲れたエンジニアが一度読んだだけで理解できるように書く。
 
-- Cut every word that does no work.
-- Use the short, everyday word: "use", not "utilize".
-- When a rule makes a sentence worse, fix the sentence another way or leave it alone.
-- Write the real symbol, file, flag, or command name, not a synonym or a description of it.
-- Don't invent jargon. Use the words a developer would say out loud. Say what a named pattern means the first time.
+- 役に立っていない語はすべて削る。
+- 短い日常的な語を使う。"utilize"（利用する）ではなく "use"（使う）と書く。
+- 規則に従うと文が悪くなるなら、別の方法で文を直すか、そのままにする。
+- 同義語や説明ではなく、実際のシンボル名、ファイル名、フラグ名、コマンド名を書く。
+- 専門用語を作らない。開発者が口に出して言う言葉を使う。名前の付いたパターンは、初出でその意味を書く。
 
-## Vary the rhythm
+## リズムに変化をつける（Vary the rhythm）
 
-- Mix sentence lengths. Split the sentence that carries two thoughts. Keep the long sentence that carries one.
-- Have a view in explanation. Keep reference dry.
-- Be specific. Not "schema changes can cause issues" but "a column rename fails the build".
+- 文の長さを混ぜる。2 つの考えを含む文は分ける。1 つの考えだけを含む長い文はそのまま残す。
+- 解説（explanation）では自分の見解を示す。リファレンスは淡々と書く。
+- 具体的に書く。"schema changes can cause issues"（スキーマの変更は問題を起こしうる）ではなく、"a column rename fails the build"（カラム名の変更でビルドが失敗する）と書く。
 
-## Pick the mode first (Diátaxis)
+## まずモードを選ぶ: Diátaxis（Pick the mode first (Diátaxis)）
 
-One document, one mode. Don't mix modes. Split and link instead.
+1 つの文書に 1 つのモード。モードを混ぜない。混ぜる代わりに、分けてリンクする。
 
-- **Tutorial: learning by doing.** Say what the learner will build. Every step produces a visible result, and you say what they should see. Explanation gets one clause and a link.
-- **How-to: steps to a goal.** Solve the reader's problem. Assume competence. Action only. Allow forks. Name the guide by the task.
-- **Reference: facts for lookup.** Only describe. Be dry, complete, and sure. Mirror the structure of the thing described.
-- **Explanation: understanding and why.** One bounded topic. Give context: design decisions, history, constraints, alternatives. Opinion is allowed here and nowhere else.
+- **チュートリアル（Tutorial）: やりながら学ぶ。** 学習者が何を作るのかを書く。どの手順も目に見える結果を生み、何が見えるはずかを書く。説明は一言とリンクで済ませる。
+- **ハウツー（How-to）: 目標までの手順。** 読み手の問題を解決する。読み手に能力があると想定する。行動だけを書く。分岐を許す。ガイドにはタスクの名前を付ける。
+- **リファレンス（Reference）: 調べるための事実。** 記述だけをする。淡々と、漏れなく、確信をもって書く。記述対象の構造をそのまま写す。
+- **解説（Explanation）: 理解と理由。** 範囲を区切った 1 つのトピックを扱う。文脈を示す（設計の決定、経緯、制約、代替案）。意見を書いてよいのはここだけである。
 
-## Write sentences to the reader (Google developer style)
+## 読み手に向けて文を書く: Google 開発者スタイル（Write sentences to the reader (Google developer style)）
 
-- Talk to the reader as "you", in the present tense.
-- Say who does what. Passive is fine only when the actor is unknown or beside the point.
-- Write instructions as commands. Put the condition before the instruction and the common case first.
-- No buzzwords, no figurative language, no "please", and never "simply", "easy", or "quickly" in a procedure.
-- Don't pre-announce, and don't start consecutive sentences with the same phrase.
-- Link with words that say where the link goes.
-- Headings carry the point, in sentence case. One h1 per page, no skipped levels.
-- Numbered lists for sequences, bullets for everything else. Introduce a list with a complete sentence. Keep items parallel.
-- Code goes in code font. UI elements go in bold. Use serial commas. Drop "etc.".
+- 読み手には "you" で、現在形で語りかける。
+- 誰が何をするかを書く。受動態は、行為者が不明なときか、本題と関係ないときに限って使ってよい。
+- 指示は命令文で書く。条件は指示の前に置き、よくあるケースを先に書く。
+- 流行語、比喩的な表現、"please" を使わない。手順の中では決して "simply"（単に）、"easy"（簡単）、"quickly"（すばやく）を使わない。
+- 前置きで予告しない。連続する文を同じ句で始めない。
+- リンクの表示文字列には、リンク先が何かわかる言葉を使う。
+- 見出しで要点を示し、sentence case（先頭の語だけを大文字にする書き方）で書く。h1 は 1 ページに 1 つにし、レベルを飛ばさない。
+- 順序のあるものには番号付きリスト、それ以外には箇条書きを使う。リストは完全な文で導入する。項目の形をそろえる。
+- コードはコード用のフォントで書く。UI の要素は太字にする。シリアルカンマ（列挙の最後の "and" や "or" の前に置くカンマ）を使う。"etc." は書かない。
 
-## Make statements load one at a time (STE rules)
+## 文の情報は 1 つずつ読ませる: STE の規則（Make statements load one at a time (STE rules)）
 
-- One instruction per sentence. One thought per sentence everywhere else.
-- Split instructions longer than about 20 words and other sentences longer than about 25.
-- Put the warning or condition before the step it guards.
-- Keep "the" and "a".
-- Give each word one meaning, and pick one word per action.
-- Write procedures as direct commands, never as narration and never in the passive.
-- Avoid "-ing" words where you can.
+- 1 文に 1 つの指示。それ以外の文でも、1 文に 1 つの考え。
+- 20 語程度より長い指示文と、25 語程度より長いそれ以外の文は分ける。
+- 警告や条件は、それが対象とする手順の前に置く。
+- "the" と "a" を省かない。
+- 1 つの語には 1 つの意味だけを持たせ、1 つの動作には 1 つの語だけを選ぶ。
+- 手順は直接の命令文で書き、決して叙述や受動態では書かない。
+- できる限り "-ing" の形の語を避ける。
 
-## Leave no sentence open to two readings (Global English)
+## 2 通りに読める文を残さない: Global English（Leave no sentence open to two readings (Global English)）
 
-- Keep words like "only" and "not" next to the word they change.
-- Break up long noun strings.
-- Make every "it", "they", and "this" point at one obvious thing. Never use "this" or "which" to point at a whole clause.
-- Don't drop verbs, or the small words that show structure, such as "that".
-- Repeat the article in a series when it prevents a misread. Say which parts "and" or "or" joins.
-- Use periods, not semicolons or em dashes. No slashes, and no "(s)". Make text in parentheses a full grammatical unit.
-- Call each thing by one name, everywhere.
-- Skip idioms, colloquialisms, Latin abbreviations, and metaphors.
+- "only" や "not" のような語は、それが修飾する語のすぐ隣に置く。
+- 長い名詞の連なりは分解する。
+- "it"、"they"、"this" は、どれも明らかな 1 つのものを指すようにする。節全体を指すのに "this" や "which" を決して使わない。
+- 動詞を省かない。"that" のような、文の構造を示す短い語も省かない。
+- 列挙では、誤読を防げるなら冠詞を繰り返す。"and" や "or" がどの部分を結んでいるかを明示する。
+- セミコロンや em ダッシュではなくピリオドを使う。スラッシュや "(s)" を使わない。括弧の中の文は、文法的に完結した単位にする。
+- 1 つのものは、どこでも 1 つの名前で呼ぶ。
+- 慣用句、口語表現、ラテン語の略語、比喩を使わない。
 
-## Voice and repo specifics
+## 語り口とリポジトリ固有の決まり（Voice and repo specifics）
 
-- Apply the **unslop** skill to every doc this skill touches. That skill owns the slop-pattern catalog: AI vocabulary, filler, hedging, formatting tells.
-- PR descriptions and commit messages are writing too. Every layer except Diátaxis applies to them. A PR body is a briefing that a reviewer can read in under a minute. Do not paste swarm logs, SHA lists, or metric tables. Link them.
-- Product UI strings are not documentation. Use your product's copy guidelines for those.
-- Indent code snippets with tabs. Write real paths. Make every count or tree claim true at the commit that lands it, and include the command that regenerates it.
+- このスキルで扱うすべての文書に **unslop** スキルを適用する。slop（AI が書きがちな冗長で空疎な文章）のパターンの一覧（AI が好む語彙、埋め草、予防線、書式に表れる兆候）は、そのスキルが受け持つ。
+- PR の説明とコミットメッセージも文章である。Diátaxis 以外のすべての層が当てはまる。PR の本文は、レビュアーが 1 分以内に読める要約である。swarm のログ、SHA の一覧、指標の表を貼らない。リンクにする。
+- 製品の UI の文言はドキュメントではない。それには製品のコピーガイドラインを使う。
+- コードの断片はタブでインデントする。実在するパスを書く。件数やツリーについての記述は、それを取り込むコミットの時点で正しくなるようにし、それを再生成するコマンドも添える。

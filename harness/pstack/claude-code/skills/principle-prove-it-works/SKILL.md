@@ -1,11 +1,11 @@
 ---
 name: principle-prove-it-works
-description: "Apply after completing a task, before declaring done. Verify against the real artifact (run the feature, read the actual value, inspect the diff), not a proxy, self-report, or 'it compiles.'"
+description: "タスクを終えたあと、完了を宣言する前に適用する。代わりの指標、自己申告、「コンパイルは通る」ではなく、実物の成果物で検証する（機能を動かす、実際の値を読む、diff を調べる）。"
 disable-model-invocation: true
 ---
 
-# Prove It Works
+# 動くことを証明する（Prove It Works）
 
-Verify every output by checking the real thing directly: run the feature, read the actual value, inspect the diff. Proxies (file mtimes, self-reports, cached output, "it compiles") do not count. When a check fails, suspect the observation method before the system.
+すべての出力を、実物を直接確かめて検証する。機能を動かし、実際の値を読み、diff を調べる。代わりの指標（ファイルの mtime、自己申告、キャッシュされた出力、「コンパイルは通る」）は数に入らない。チェックが失敗したら、システムより先に観察の方法を疑う。
 
-Script the check when you can. A deterministic script that reruns the comparison beats a one-time look. Keep its output where the human can see it, and commit it only when the trail must be auditable later.
+できるならチェックをスクリプトにする。比較を再実行できる決定的なスクリプトは、1 回きりの目視に勝る。その出力は人間が見られる場所に置き、後から監査できる記録が必要なときだけコミットする。

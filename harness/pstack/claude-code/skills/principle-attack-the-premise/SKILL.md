@@ -1,15 +1,15 @@
 ---
 name: principle-attack-the-premise
-description: "Apply when two or more fixes that share one premise have failed the same gate. Write the premise down and test it directly before you write another fix that assumes it."
+description: "同じ前提に立つ 2 つ以上の修正が、同じゲートで失敗したときに適用する。その前提に立つ次の修正を書く前に、前提を書き出し、直接検証する。"
 disable-model-invocation: true
 ---
 
-# Attack the Premise
+# 前提を疑う（Attack the Premise）
 
-When two or more fixes that share one premise have failed the same gate, suspect the premise, not the fixes.
+同じ前提に立つ 2 つ以上の修正が同じゲートで失敗したら、修正ではなく前提を疑う。
 
-- Write the premise down: the one sentence every failed fix assumed.
-- Test it before the next fix. Find an observation that would come out differently if the premise were false, and make it. Look at how the failures are distributed, not only at how large they are.
-- If the evidence contradicts the premise, look for what the failures share that it did not predict. If one part always lands on the losing side, change what puts it there instead of adding a mechanism that cleans up after it.
+- 前提を、失敗した修正がどれも仮定していた一文として書き出す。
+- 次の修正の前に前提を検証する。前提が偽なら結果が変わるはずの観察を見つけ、それを実際に行う。失敗の大きさだけでなく、失敗がどう分布しているかを見る。
+- 証拠が前提と矛盾したら、失敗に共通していて、前提からは予測できなかったものを探す。ある部分が常に負ける側に入るなら、後始末をする仕組みを足すのではなく、その部分を負ける側に入れている原因を変える。
 
-Do not start the next fix before the premise is written down and tested.
+前提を書き出して検証するまで、次の修正に取りかからない。

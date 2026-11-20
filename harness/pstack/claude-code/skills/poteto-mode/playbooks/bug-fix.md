@@ -1,15 +1,15 @@
-### Bug fix
+### バグ修正（Bug fix）
 
-**You own this task. Plan, review, verify.** Delegate investigation and the fix to subagents, stay in the lead. Pick each subagent's reasoning level for the job, per the Subagents section.
+**このタスクに責任を持つ。計画し、レビューし、検証する。** 調査と修正はサブエージェントに委任し、自分は主導する立場にとどまる。各サブエージェントの推論のレベルは、サブエージェント（Subagents）の節に従い、仕事に合わせて選ぶ。
 
-Be scientific. Every shipped line traces to runtime evidence. Belt-and-suspenders that "might help" is a hypothesis, not a fix. It does not ship. When evidence refutes a hypothesis, revert what it motivated. The smallest change the evidence justifies ships, nothing more.
+科学的に進める。リリースする行はすべて、実行時の証拠にさかのぼれなければならない。「役に立つかもしれない」念のための二重の対策は、修正ではなく仮説である。それはリリースしない。証拠が仮説を否定したら、その仮説をもとに入れた変更を元に戻す。証拠が正当化する最小の変更だけをリリースし、それ以上は出さない。
 
-1. Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instrumentation protocol says to ask the user to reproduce. Ask the user only with a stated, specific reason the control surface cannot reach the target, and only after driving it as far as it goes. If it won't reproduce directly, synthesize the trigger, tighten conditions, or instrument until it fires.
-2. Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. Seed them with a trace of the affected subsystem and the **why** skill for regression history. Each pass, take the split that cuts the most remaining problem space, get runtime evidence, eliminate. When program state is unclear, add instrumentation or logging and read it as the code runs. Don't guess. Drive a long or stubborn hunt with Cursor's `/loop` command. Confirm the surviving *mechanism* with runtime evidence before step 3's `architect` or an `interrogate` fan-out.
-3. Plan the fix. If it crosses a function boundary, `architect` first. Delegate implementation to a subagent using your configured bug-fix model (default `claude-opus-5-5-xhigh-fast`) with a specific scope.
-4. Verify on the same surface. The original repro now passes. "Inconclusive" or wrong-surface is not a pass. Flag it. Unit tests show branch behavior, not bug absence.
-5. Stage the commits so the failing repro lands before the fix in git history. See the **tdd** skill for the failing-test-first cadence when the bug has a cheap local test path. Skip it when the test would be expensive, integration-heavy, or unclear.
-   This is the canonical **sequence-verifiable-units** principle skill, the failing test first and the fix on top.
-6. Run **Opening a PR**.
+1. デバッグや計測の手順がユーザーに再現を頼むよう指示していても、対応する画面で操作スキル（control skill）を使い、自分で再現する（譲れない規則（Non-negotiables）の節）。ユーザーに頼むのは、操作の手段では対象に届かない具体的な理由を述べたうえで、しかも行けるところまで操作した後に限る。直接再現できなければ、きっかけを人工的に作る、条件を絞る、または発生するまで計測を仕込む。
+2. 原因を二分探索する。候補となる仮説を立て、1 つが残るまで否定していく。仮説を立てる材料として、影響を受けるサブシステムのトレースと、リグレッションの経緯を調べる **why** スキルを使う。毎回、残りの問題空間を最も大きく削る分け方を選び、実行時の証拠を得て、候補を消す。プログラムの状態が分からないときは、計測やログを足し、コードが動くあいだにそれを読む。推測しない。長引く探索やしぶとい探索は、Cursor の `/loop` コマンドで進める。手順 3 の `architect` や `interrogate` のファンアウトの前に、残った*仕組み*を実行時の証拠で確かめる。
+3. 修正を計画する。修正が関数の境界をまたぐなら、先に `architect` を使う。実装は、範囲を具体的に決めて、設定した bug-fix のモデル（既定は `claude-opus-5-5-xhigh-fast`）でサブエージェントに委任する。
+4. 同じ画面で検証する。元の再現手順が、修正後は通る。「結論が出ない」結果や、別の画面での結果は合格ではない。そう明示する。単体テストが示すのは分岐の振る舞いであり、バグがないことではない。
+5. git の履歴で、失敗する再現手順が修正より先に入るようにコミットを並べる。バグを手元で安くテストできるなら、失敗するテストを先に書く進め方について **tdd** スキルを参照する。テストが高くつく、結合テストの比重が大きい、または何を確かめるか不明確なときは省く。
+   これは **sequence-verifiable-units** 原則スキルの典型例であり、失敗するテストを先に置き、その上に修正を載せる。
+6. **PR を開く（Opening a PR）** を実行する。
 
-**Reply:** what was broken, root cause, fix, how you verified. Paste failing-then-passing repro output verbatim.
+**返答：** 何が壊れていたか、根本原因、修正、どう検証したか。再現手順が失敗してから通るまでの出力を、そのまま貼る。

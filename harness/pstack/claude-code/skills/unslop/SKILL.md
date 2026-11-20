@@ -1,40 +1,40 @@
 ---
 name: unslop
-description: Cut AI tells from any writing.
+description: あらゆる文章から、AI が書いたとわかる癖を取り除く。
 disable-model-invocation: true
 ---
 
-# Unslop
+# slop を取り除く（Unslop）
 
-Edit text to remove AI patterns. Scan for the patterns below, then rewrite. Preserve meaning and match the intended tone.
+文章を編集して、AI に特有のパターンを取り除く。下のパターンを探してから書き直す。意味は保ち、意図された口調に合わせる。
 
-Rule numbers are stable ids that other skills cite. A removed rule leaves a gap.
+規則の番号は、ほかのスキルが引用する固定の ID である。削除した規則の番号は欠番として残す。
 
-3. No trailing "-ing" phrases that add no fact ("highlighting...", "ensuring...").
-5. No vague attributions ("experts believe"). Name the source or delete.
-7. No AI vocabulary: additionally, crucial, delve, enhance, foster, landscape, pivotal, showcase, testament, underscore, vibrant.
-8. Say "is" or "has", not "serves as", "stands as", "boasts", "features".
-9. No "not just X, but Y". State the point.
-10. Don't force ideas into threes.
-11. One name per thing. Repeat it.
-12. No "from X to Y" unless X and Y sit on a real scale.
-13. No em dashes, en dashes, or hyphens used as dashes, and no parentheses in their place. Use a period or a comma.
-14. A colon goes before a list or an example, never mid-sentence as a connector.
-15. Don't bold every proper noun or acronym.
-16. No bold label and colon that restates its line ("**Performance:** Performance improved..."). A bold lead-in that ends in a period and adds new detail is fine.
-17. Sentence case headings.
-18. No decorative emojis.
-19. Straight quotes.
-20. No chatbot phrases ("I hope this helps!", "Let me know if...").
-22. No praise or agreement openers. Respond directly.
-23. Cut filler. "In order to" becomes "to". Delete "it is important to note that".
-24. One hedge at most: "may".
-25. No generic conclusions. State specific plans or facts.
-26. No abstract metaphor nouns: substrate, wedge, vector, nexus, primitive, harness, surface, scaffolding, paradigm, ratchet, north star, flywheel. Use the concrete word.
-27. Say what it does, not how it feels. Name the mechanism or the number. Cut a sentence that could appear unchanged in another project's docs.
-28. One idea per sentence. Split a sentence the reader has to reread.
-29. Active voice. Name the actor unless it is unknown or doesn't matter.
-30. Cut adverbs or use a stronger verb. Give the number.
-31. Use the plain word: "use", not "utilize" or "leverage".
-32. No metaphor, aphorism, personified code, or figurative verb where a literal phrase exists.
-33. Write whole sentences with their articles and verbs. Spell out arrows and abbreviations.
+3. 事実を何も足さない、文末に付け足した "-ing" の句を書かない（"highlighting..."（〜を浮き彫りにし）、"ensuring..."（〜を確実にし））。
+5. 出所のあいまいな帰属を書かない（"experts believe"（専門家は〜と考えている））。出所を明記するか、削除する。
+7. AI が好む語彙を使わない: additionally（さらに）、crucial（極めて重要な）、delve（掘り下げる）、enhance（高める）、foster（育む）、landscape（情勢）、pivotal（中心的な）、showcase（披露する）、testament（証し）、underscore（強調する）、vibrant（活気ある）。
+8. "serves as"（〜の役割を果たす）、"stands as"（〜として存在する）、"boasts"（〜を誇る）、"features"（〜を備える）ではなく、"is"（〜である）か "has"（〜がある）と書く。
+9. "not just X, but Y"（X だけでなく Y も）を使わない。要点をそのまま述べる。
+10. 考えを無理に 3 つ組にしない。
+11. 1 つのものには 1 つの名前を使う。同じ名前を繰り返す。
+12. X と Y が実際に 1 つの尺度の上にあるのでなければ、"from X to Y"（X から Y まで）を使わない。
+13. em ダッシュ、en ダッシュ、ダッシュ代わりのハイフンを使わず、その代わりに丸括弧も使わない。ピリオドかカンマを使う。
+14. コロンは一覧か例の前に置く。文の途中で接続詞の代わりに使うことは決してしない。
+15. 固有名詞や略語をいちいち太字にしない。
+16. その行の内容を繰り返すだけの、太字のラベルとコロンを書かない（"**Performance:** Performance improved..."（**性能:** 性能が向上した…））。ピリオドで終わり、新しい詳細を加える太字の書き出しはよい。
+17. 見出しは sentence case（先頭の語だけを大文字にする書き方）にする。
+18. 飾りの絵文字を使わない。
+19. 引用符はストレートクォート（" と '）にする。
+20. チャットボットの決まり文句を書かない（"I hope this helps!"（お役に立てば幸いです）、"Let me know if..."（〜があればお知らせください））。
+22. 称賛や同意で書き出さない。直接答える。
+23. 埋め草を削る。"In order to"（〜するために）は "to" にする。"it is important to note that"（〜に注意することが重要である）は削除する。
+24. ぼかす表現は多くても 1 つまでにする: "may"（〜かもしれない）。
+25. ありきたりな結論を書かない。具体的な計画か事実を述べる。
+26. 抽象的な比喩の名詞を使わない: substrate（基盤）、wedge（くさび）、vector（ベクトル）、nexus（結節点）、primitive（プリミティブ）、harness（ハーネス）、surface（表面）、scaffolding（足場）、paradigm（パラダイム）、ratchet（ラチェット）、north star（北極星）、flywheel（フライホイール）。具体的な語を使う。
+27. どう感じられるかではなく、何をするかを書く。仕組みか数値を挙げる。ほかのプロジェクトのドキュメントにそのまま載りうる文は削る。
+28. 1 文に 1 つの考えを書く。読み手が読み返さなければならない文は分割する。
+29. 能動態で書く。行為者が不明か重要でない場合を除き、行為者を明示する。
+30. 副詞を削るか、より強い動詞を使う。数値を示す。
+31. 平易な語を使う: "utilize" や "leverage" ではなく "use"（使う）。
+32. 字義どおりの言い方があるところで、比喩、警句、擬人化したコード、比喩的な動詞を使わない。
+33. 冠詞と動詞を省かず、完全な文で書く。矢印と略語は言葉で書き下す。

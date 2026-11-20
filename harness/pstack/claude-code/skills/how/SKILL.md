@@ -1,23 +1,23 @@
 ---
 name: how
-description: "Use for \"how does X work\", code walkthroughs before changing something, and placement / ownership / layering questions (\"where should this live\", \"which package owns this\", \"is this the right layer\"). Explains subsystem architecture, runtime flow, onboarding mental models. Use why for motivation."
+description: "「X はどう動くのか」、何かを変える前のコードの読み解き、配置・所有・レイヤーについての問い（「これはどこに置くべきか」「どのパッケージがこれを持つのか」「これは正しいレイヤーか」）に使う。サブシステムのアーキテクチャ、実行時の流れ、新しく加わる人向けのメンタルモデルを説明する。動機については why を使う。"
 disable-model-invocation: true
 ---
 
-# How
+# どう動くか（How）
 
 In Claude Code, read [the Claude Code adapter](../../docs/harness/claude-code.md) once per session before you follow this skill. It maps the Cursor names in pstack skills to Claude Code.
 
-Explore the codebase to answer "how does X work?" questions.
+コードベースを調べて、「X はどう動くのか」という問いに答える。
 
-If the scope is ambiguous, state your interpretation and explore. The user can redirect.
+範囲があいまいなら、自分の解釈を述べてから調べる。方向が違えば、ユーザーが修正できる。
 
-## 1. Explain
+## 1. 説明する（Explain）
 
-Spawn one Task subagent with `subagent_type: generalPurpose` and `readonly: true` that explores and explains in one pass. Give it the user's question and this brief:
+`subagent_type: generalPurpose` と `readonly: true` を付けた `Task` サブエージェントを 1 つ起動し、調査と説明を一度に行わせる。ユーザーの問いと、次の依頼文を渡す。
 
-> You are writing an architectural explanation for a senior engineer. Explore the codebase and write an explanation that a senior engineer unfamiliar with this area could read and walk away with a solid mental model. They should understand the architecture well enough to start working in it confidently. You have read-only access to the codebase.
+> あなたは、シニアエンジニアに向けてアーキテクチャの説明を書いている。コードベースを調べ、この領域に詳しくないシニアエンジニアが読み終えたときに、確かなメンタルモデルを得られる説明を書く。読み手は、自信を持ってこの領域で作業を始められる程度に、アーキテクチャを理解できなければならない。コードベースへのアクセスは読み取り専用である。
 
-## 2. Present
+## 2. 提示する（Present）
 
-Present the subagent's output. Light edits for clarity or context from the conversation are fine. Do not substantially rewrite it.
+サブエージェントの出力を提示する。わかりやすくするための軽い編集や、会話の文脈を補う程度の編集はよい。大幅に書き直さない。

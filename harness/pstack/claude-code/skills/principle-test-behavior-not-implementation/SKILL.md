@@ -1,16 +1,16 @@
 ---
 name: principle-test-behavior-not-implementation
-description: "Apply when you write, change, or keep a test. Assert what the code's users can observe, so that the test fails when that behavior breaks and keeps passing when only the internals change."
+description: "テストを書く、変える、残すときに適用する。コードの利用者が観察できることを検証し、その振る舞いが壊れたらテストが失敗し、内部だけが変わったときは通り続けるようにする。"
 disable-model-invocation: true
 ---
 
-# Test Behavior, Not Implementation
+# 実装ではなく振る舞いをテストする（Test Behavior, Not Implementation）
 
-A test is a claim about what users of the code can observe through its interface: return values, errors, state they can read back, and effects on outside systems. Private helpers, internal call order, and intermediate data are implementation.
+テストとは、コードの利用者がそのインターフェースを通して観察できること（戻り値、エラー、読み戻せる状態、外部のシステムへの影響）についての主張である。private なヘルパー、内部の呼び出し順、中間のデータは実装である。
 
-Judge each test against two imagined edits:
+各テストを、2 つの仮想の編集に照らして判定する。
 
-- **Break the behavior** (a wrong value, a skipped or doubled effect). If the test still passes, it proves nothing. The usual causes are a loose assertion, an expected value computed by the code under test, and an assertion on data the test built itself.
-- **Change the internals** and keep every observable result. If the test fails, it is pinned to the implementation.
+- **振る舞いを壊す**（誤った値、副作用の欠落や重複）。それでもテストが通るなら、そのテストは何も証明していない。よくある原因は、緩いアサーション、テスト対象のコードで計算した期待値、テスト自身が組み立てたデータへのアサーションである。
+- **内部を変え**、観察できる結果はすべて保つ。それでテストが失敗するなら、そのテストは実装に縛られている。
 
-Keep a test that catches the first edit and survives the second. Rewrite or delete the rest. Drive the code through its public interface with a concrete input, and derive the expected value from the requirement. What an external service receives is behavior. A call to an internal helper is not. Pair "this never happens" with a case where it does happen. Assert the error type that callers branch on, not the message.
+1 つ目の編集を検出し、2 つ目の編集では失敗しないテストを残す。それ以外は書き直すか削除する。コードは具体的な入力を与えて公開インターフェースから動かし、期待値は要件から導く。外部のサービスが受け取るものは振る舞いである。内部のヘルパーの呼び出しは振る舞いではない。「これは決して起きない」というテストには、実際にそれが起きるケースを対にする。メッセージではなく、呼び出し元が分岐に使うエラーの型を検証する。

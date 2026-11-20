@@ -1,14 +1,14 @@
 ---
 name: principle-build-the-lever
-description: "Apply to any non-trivial work, not just bulk work: edits, migrations, analyses, checks. Build the tool that does it or proves it (codemod, script, generator, or a skill your subagents follow) instead of working by hand. The tool is the artifact a reviewer can rerun."
+description: "大量の作業に限らず、自明でない作業すべて（編集、移行、分析、チェック）に適用する。手作業でこなすのではなく、その作業を行うか証明するツール（codemod、スクリプト、ジェネレーター、サブエージェントが従うスキル）を作る。そのツールが、レビュアーが再実行できる成果物になる。"
 disable-model-invocation: true
 ---
 
-# Build the Lever
+# てこを作る（Build the Lever）
 
-When the work isn't trivial, build the tool that does it (a codemod, script, generator, or rerunnable check) instead of doing it by hand. The bar is triviality, not repetition. Skip the tool only for a couple of obvious edits.
+作業が自明でないときは、手でこなすのではなく、それを行うツール（codemod、スクリプト、ジェネレーター、再実行できるチェック）を作る。基準は繰り返しかどうかではなく、自明かどうかである。ツールを省いてよいのは、明らかな編集が 2、3 か所あるだけのときに限る。
 
-- Do the first unit by hand, then build the tool and prove it by rerunning it on that unit. Make it safe to rerun.
-- A deterministic tool beats fan-out. When you do fan out, write the recipe, the verification contract, and the fences as one skill the delegates read and cannot edit.
-- Applying this produces a file. No script, codemod, generator, or delegate skill in the diff means you didn't apply it. Commit it when the work outlives the session.
-- Build the smallest script that does or proves the job, never a framework.
+- 最初の 1 単位は手で行い、それからツールを作り、その単位に再実行して正しさを証明する。再実行しても安全なものにする。
+- 決定的なツールはファンアウトに勝る。ファンアウトするときは、手順、検証の契約、作業範囲の境界（fences）を、委任先が読むだけで編集できない 1 つのスキルとして書く。
+- この原則を適用すると、ファイルが 1 つできる。diff にスクリプトも codemod もジェネレーターも委任先向けのスキルもなければ、適用していないということである。作業がセッションの後も続くなら、そのファイルをコミットする。
+- 作業を行うか証明する最小のスクリプトを作る。決してフレームワークは作らない。

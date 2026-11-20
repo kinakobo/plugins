@@ -1,15 +1,15 @@
 ---
 name: principle-model-the-domain
-description: "Apply when writing stateful logic, or when code branches a lot or repeats a shape assumption across files."
+description: "状態を持つロジックを書くとき、またはコードの分岐が多いときや、データの形についての同じ仮定が複数のファイルで繰り返されているときに適用する。"
 disable-model-invocation: true
 ---
 
-# Model the Domain
+# ドメインをモデル化する（Model the Domain）
 
-Encode the domain in a data structure instead of scattering it across conditionals. The right structure makes invalid states unrepresentable and deletes branches.
+ドメインを条件分岐に散らばらせるのではなく、データ構造で表現する。正しい構造にすれば、不正な状態を表現できなくなり、分岐も消える。
 
-Reach for a state machine instead of scattered booleans or phase checks, a typed model instead of loose parameters, a map, registry, or discriminated union instead of branching spread across files, a reducer instead of ad hoc mutations, and an index, queue, or normalized collection where the access pattern calls for it.
+散らばった真偽値やフェーズのチェックではなくステートマシンを、ばらばらの引数ではなく型のついたモデルを、ファイルにまたがる分岐ではなくマップ、レジストリ、判別共用体（discriminated union）を、場当たり的な変更ではなく reducer を使う。アクセスパターンが必要とするなら、インデックス、キュー、正規化したコレクションを使う。
 
-Do not force it. Keep boring code when the shape is clear, local, and unlikely to grow, and distrust an abstraction that adds indirection without removing branches or invalid states.
+無理に当てはめない。形が明確で、局所的で、大きくなりそうにないなら、平凡なコードのままにする。分岐も不正な状態も減らさずに間接参照だけを増やす抽象化は疑う。
 
-The sign that you skipped this: a feature that grows an if/else chain by one more branch, or a second boolean that must stay in sync with the first.
+この原則を飛ばしたしるしは、if/else の連鎖に分岐をもう 1 つ足す機能や、1 つ目と同期させ続けなければならない 2 つ目の真偽値である。
